@@ -86,7 +86,7 @@ module "branch-network-dev-folder" {
 # automation service account and bucket
 
 module "branch-network-sa" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git/modules/iam-service-account?ref=v18.0.0"
+  source      = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git/modules/iam-service-account?ref=v18.0.0"
   project_id  = var.automation.project_id
   name        = "prod-resman-net-0"
   description = "Terraform resman networking service account."
@@ -102,7 +102,7 @@ module "branch-network-sa" {
 }
 
 module "branch-network-gcs" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git/modules/gcs?ref=v18.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git/modules/gcs?ref=v18.0.0"
   project_id    = var.automation.project_id
   name          = "prod-resman-net-0"
   prefix        = var.prefix
