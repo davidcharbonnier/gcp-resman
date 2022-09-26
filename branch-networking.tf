@@ -17,7 +17,7 @@
 # tfdoc:file:description Networking stage resources.
 
 module "branch-network-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git/modules/folder?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v18.0.0"
   parent = "organizations/${var.organization.id}"
   name   = "Networking"
   group_iam = {
@@ -46,7 +46,7 @@ module "branch-network-folder" {
 }
 
 module "branch-network-prod-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git/modules/folder?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v18.0.0"
   parent = module.branch-network-folder.id
   name   = "Production"
   iam = {
@@ -65,7 +65,7 @@ module "branch-network-prod-folder" {
 }
 
 module "branch-network-dev-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git/modules/folder?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v18.0.0"
   parent = module.branch-network-folder.id
   name   = "Development"
   iam = {

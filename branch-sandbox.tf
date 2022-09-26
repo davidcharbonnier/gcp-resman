@@ -22,7 +22,7 @@ moved {
 }
 
 module "branch-sandbox-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git/modules/folder?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v18.0.0"
   count  = var.fast_features.sandbox ? 1 : 0
   parent = "organizations/${var.organization.id}"
   name   = "Sandbox"

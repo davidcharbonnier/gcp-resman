@@ -17,7 +17,7 @@
 # tfdoc:file:description GKE multitenant stage resources.
 
 module "branch-gke-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git/modules/folder?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v18.0.0"
   count  = var.fast_features.gke ? 1 : 0
   parent = "organizations/${var.organization.id}"
   name   = "GKE"
@@ -29,7 +29,7 @@ module "branch-gke-folder" {
 }
 
 module "branch-gke-dev-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git/modules/folder?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v18.0.0"
   count  = var.fast_features.gke ? 1 : 0
   parent = module.branch-gke-folder.0.id
   name   = "Development"
@@ -49,7 +49,7 @@ module "branch-gke-dev-folder" {
 }
 
 module "branch-gke-prod-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git/modules/folder?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v18.0.0"
   count  = var.fast_features.gke ? 1 : 0
   parent = module.branch-gke-folder.0.id
   name   = "Production"

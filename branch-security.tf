@@ -17,7 +17,7 @@
 # tfdoc:file:description Security stage resources.
 
 module "branch-security-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git/modules/folder?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v18.0.0"
   parent = "organizations/${var.organization.id}"
   name   = "Security"
   group_iam = {
