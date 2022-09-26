@@ -37,7 +37,7 @@ locals {
 # billing account in a different org
 
 module "billing-organization-ext" {
-  source          = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git/modules/organization?ref=v18.0.0"
+  source          = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/organization?ref=v18.0.0"
   count           = local.billing_org_ext ? 1 : 0
   organization_id = "organizations/${var.billing_account.organization_id}"
   iam_additive = {

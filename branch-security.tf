@@ -49,7 +49,7 @@ module "branch-security-folder" {
 # automation service account and bucket
 
 module "branch-security-sa" {
-  source      = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git/modules/iam-service-account?ref=v18.0.0"
+  source      = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v18.0.0"
   project_id  = var.automation.project_id
   name        = "prod-resman-sec-0"
   description = "Terraform resman security service account."
@@ -65,7 +65,7 @@ module "branch-security-sa" {
 }
 
 module "branch-security-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git/modules/gcs?ref=v18.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v18.0.0"
   project_id    = var.automation.project_id
   name          = "prod-resman-sec-0"
   prefix        = var.prefix

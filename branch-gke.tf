@@ -69,7 +69,7 @@ module "branch-gke-prod-folder" {
 }
 
 module "branch-gke-dev-sa" {
-  source      = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git/modules/iam-service-account?ref=v18.0.0"
+  source      = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v18.0.0"
   count       = var.fast_features.gke ? 1 : 0
   project_id  = var.automation.project_id
   name        = "dev-resman-gke-0"
@@ -89,7 +89,7 @@ module "branch-gke-dev-sa" {
 }
 
 module "branch-gke-prod-sa" {
-  source      = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git/modules/iam-service-account?ref=v18.0.0"
+  source      = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v18.0.0"
   count       = var.fast_features.gke ? 1 : 0
   project_id  = var.automation.project_id
   name        = "prod-resman-gke-0"
@@ -109,7 +109,7 @@ module "branch-gke-prod-sa" {
 }
 
 module "branch-gke-dev-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git/modules/gcs?ref=v18.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v18.0.0"
   count         = var.fast_features.gke ? 1 : 0
   project_id    = var.automation.project_id
   name          = "dev-resman-gke-0"
@@ -123,7 +123,7 @@ module "branch-gke-dev-gcs" {
 }
 
 module "branch-gke-prod-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git/modules/gcs?ref=v18.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v18.0.0"
   count         = var.fast_features.gke ? 1 : 0
   project_id    = var.automation.project_id
   name          = "prod-resman-gke-0"
