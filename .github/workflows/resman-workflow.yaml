@@ -101,6 +101,12 @@ jobs:
         continue-on-error: true
         run: |
           terraform plan -input=false -out ../plan.out -no-color
+      
+      - id: tf-plan-format
+        name: Terraform plan format
+        continue-on-error: true
+        run: |
+          terraform show -json ../plan.out | jq -j -r '.resource_changes[] | (.change.actions | join(",")), " ", .address, "\n" '
 
       - id: tf-apply
         if: github.event.pull_request.merged == true
@@ -114,7 +120,7 @@ jobs:
         uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
         env:
-          PLAN: terraform\n${{ steps.tf-plan.outputs.stdout }}
+          PLAN: terraform\n${{ steps.tf-plan-format.outputs.stdout }}
         with:
           script: |
             const output = `#### Terraform Initialization ⚙️\`${{ steps.tf-init.outcome }}\`
