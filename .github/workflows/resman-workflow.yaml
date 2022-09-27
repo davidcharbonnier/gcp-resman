@@ -103,18 +103,18 @@ jobs:
           terraform plan -input=false -out ../plan.out -no-color
           terraform show -json ../plan.out > ../plan.json
 
+      - id: pr-comment-format
+        name: Format comment for Pull Request
+        uses: sergeysova/jq-action@v2
+        run: |
+          jq -j -r '.resource_changes[] | (.change.actions | join(",")), " ", .address, "\n" ' ../plan.json
+
       - id: tf-apply
         if: github.event.pull_request.merged == true
         name: Terraform apply
         continue-on-error: true
         run: |
           terraform apply -input=false -auto-approve -no-color ../plan.out
-
-      - id: pr-comment-format
-        name: Format comment for Pull Request
-        uses: sergeysova/jq-action@v2
-        run: |
-          jq -j -r '.resource_changes[] | (.change.actions | join(",")), " ", .address, "\n" ' ../plan.json
 
       - id: pr-comment
         name: Post comment to Pull Request
