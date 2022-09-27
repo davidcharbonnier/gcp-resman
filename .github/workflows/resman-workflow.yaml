@@ -101,12 +101,7 @@ jobs:
         continue-on-error: true
         run: |
           terraform plan -input=false -out ../plan.out -no-color
-      
-      - id: tf-plan-format
-        name: Terraform plan format
-        continue-on-error: true
-        run: |
-          terraform show -json ../plan.out | jq -j -r '.resource_changes[] | (.change.actions | join(",")), " ", .address, "\n" '
+          terraform show -json ../plan.out > ../plan.json
 
       - id: tf-apply
         if: github.event.pull_request.merged == true
@@ -115,12 +110,18 @@ jobs:
         run: |
           terraform apply -input=false -auto-approve -no-color ../plan.out
 
+      - id: pr-comment-format
+        name: Format comment for Pull Request
+        uses: sergeysova/jq-action@v2
+        run: |
+          jq -j -r '.resource_changes[] | (.change.actions | join(",")), " ", .address, "\n" ' ../plan.json
+
       - id: pr-comment
         name: Post comment to Pull Request
         uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
         env:
-          PLAN: terraform\n${{ steps.tf-plan-format.outputs.stdout }}
+          PLAN: terraform\n${{ steps.pr-comment-format.outputs.stdout }}
         with:
           script: |
             const output = `#### Terraform Initialization ⚙️\`${{ steps.tf-init.outcome }}\`
@@ -144,8 +145,6 @@ jobs:
             </details>
 
             #### Terraform Apply 📖\`${{ steps.tf-apply.outcome }}\`
-
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
