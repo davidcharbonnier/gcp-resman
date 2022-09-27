@@ -121,7 +121,7 @@ jobs:
         uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
         env:
-          PLAN: terraform\n${{ steps.pr-comment-format.outputs.stdout }}
+          PLAN: terraform\n${{ steps.pr-comment-format.outputs.value }}
         with:
           script: |
             const output = `#### Terraform Initialization ⚙️\`${{ steps.tf-init.outcome }}\`
