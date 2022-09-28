@@ -105,9 +105,14 @@ jobs:
 
       - id: pr-comment-format
         name: Format comment for Pull Request
-        uses: sergeysova/jq-action@v2
-        with:
-          cmd: jq -j -r '.resource_changes[] | (.change.actions | join(",")), " ", .address, "\n" ' ../plan.json
+        run: |
+          jq -j -r '.resource_changes[] | (.change.actions | join(",")), " ", .address, "\n" ' ../plan.json
+
+      #- id: pr-comment-format
+      #  name: Format comment for Pull Request
+      #  uses: sergeysova/jq-action@v2
+      #  with:
+      #    cmd: jq -j -r '.resource_changes[] | (.change.actions | join(",")), " ", .address, "\n" ' ../plan.json
 
       - id: tf-apply
         if: github.event.pull_request.merged == true
