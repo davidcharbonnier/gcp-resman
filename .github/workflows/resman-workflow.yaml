@@ -101,18 +101,12 @@ jobs:
         continue-on-error: true
         run: |
           terraform plan -input=false -out ../plan.out -no-color
-          terraform show -json ../plan.out > ../plan.json
+          
 
       - id: pr-comment-format
         name: Format comment for Pull Request
         run: |
-          jq -j -r '.resource_changes[] | (.change.actions | join(",")), " ", .address, "\n" ' ../plan.json
-
-      #- id: pr-comment-format
-      #  name: Format comment for Pull Request
-      #  uses: sergeysova/jq-action@v2
-      #  with:
-      #    cmd: jq -j -r '.resource_changes[] | (.change.actions | join(",")), " ", .address, "\n" ' ../plan.json
+          terraform show -json ../plan.out
 
       - id: tf-apply
         if: github.event.pull_request.merged == true
@@ -126,7 +120,7 @@ jobs:
         uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
         env:
-          PLAN: terraform\n${{ steps.pr-comment-format.outputs.value }}
+          PLAN: ${{ steps.pr-comment-format.outputs.stdout }}
         with:
           script: |
             const output = `#### Terraform Initialization ⚙️\`${{ steps.tf-init.outcome }}\`
