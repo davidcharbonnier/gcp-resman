@@ -108,6 +108,7 @@ jobs:
         name: Format comment for Pull Request
         run: |
           jq -j -r '.resource_changes[] | select(.change.actions | inside(["no-op"]) | not) | (.change.actions | join(",")), " ", .address, "\n" ' ../plan.json
+        shell: bash
 
       - id: tf-apply
         if: github.event.pull_request.merged == true
