@@ -106,7 +106,7 @@ jobs:
       - id: pr-comment-format
         name: Format comment for Pull Request
         run: |
-          terraform show -json ../plan.out
+          terraform show ../plan.out
 
       - id: tf-apply
         if: github.event.pull_request.merged == true
