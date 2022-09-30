@@ -126,6 +126,13 @@ jobs:
             </details>
 
             #### Terraform Plan 📖\`${{ steps.tf-plan.outcome }}\`
+            <details><summary>Plan Output</summary>
+
+            \`\`\`\n
+            ${{ steps.tf-plan.outputs.stdout }}
+            \`\`\`
+
+            </details>
 
             #### Terraform Apply 📖\`${{ steps.tf-apply.outcome }}\``
 
