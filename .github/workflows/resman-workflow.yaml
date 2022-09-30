@@ -100,7 +100,7 @@ jobs:
         name: Terraform plan
         continue-on-error: true
         run: |
-          terraform refresh &>/dev/null && terraform plan -no-refresh -input=false -out ../plan.out -no-color
+          terraform refresh &>/dev/null && terraform plan -refresh=false -input=false -out ../plan.out -no-color
 
       - id: tf-apply
         if: github.event.pull_request.merged == true
