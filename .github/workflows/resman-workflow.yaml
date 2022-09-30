@@ -106,7 +106,7 @@ jobs:
       - id: pr-comment-format
         name: Format comment for Pull Request
         run: |
-          if [ -z "$(grep "Plan:" ../plan.txt)"]
+          if [ -z "$(grep "Plan:" ../plan.txt)" ]
           then
             echo "No changes. Infrastructure is up-to-date."
           else
