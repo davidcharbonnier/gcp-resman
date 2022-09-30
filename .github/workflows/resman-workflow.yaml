@@ -113,6 +113,8 @@ jobs:
         name: Post comment to Pull Request
         uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
+        env:
+          PLAN: terraform\n${{ steps.tf-plan.outputs.stdout }}
         with:
           script: |
             const output = `#### Terraform Initialization ⚙️\`${{ steps.tf-init.outcome }}\`
@@ -126,10 +128,11 @@ jobs:
             </details>
 
             #### Terraform Plan 📖\`${{ steps.tf-plan.outcome }}\`
-            <details><summary>Plan Output</summary>
+
+            <details><summary>Show Plan</summary>
 
             \`\`\`\n
-            ${{ steps.tf-plan.outputs.stdout }}
+            ${process.env.PLAN}
             \`\`\`
 
             </details>
