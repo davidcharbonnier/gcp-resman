@@ -100,14 +100,18 @@ jobs:
         name: Terraform plan
         continue-on-error: true
         run: |
-          terraform plan -input=false -out ../plan.out -no-color
-          terraform show -json ../plan.out > ../plan.json
+          terraform plan -input=false -out ../plan.out -no-color | tee ../plan.txt
           
 
       - id: pr-comment-format
         name: Format comment for Pull Request
         run: |
-          jq -j -r '.resource_changes[] | select(.change.actions | inside(["no-op"]) | not) | (.change.actions | join(",")), " ", .address, "\n" ' ../plan.json
+          if [ -z "$(grep "Plan:" ../plan.txt)"]
+          then
+            echo "No changes. Infrastructure is up-to-date."
+          else
+            echo "$(grep "Plan:" ../plan.txt | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" | sed "s/Plan: //g")"
+          fi
         shell: bash
 
       - id: tf-apply
