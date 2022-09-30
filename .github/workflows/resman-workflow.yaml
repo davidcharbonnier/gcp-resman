@@ -114,9 +114,18 @@ jobs:
         uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
         env:
-          PLAN: terraform\n${{ steps.tf-plan.outputs.stdout }}
+          PLAN: ${{ steps.tf-plan.outputs.stdout }}
         with:
           script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            })
+            const botComment = comments.find(comment => {
+              return comment.user.type === 'Bot' && comment.body.includes('Terraform Format and Style')
+            })
+
             const output = `#### Terraform Initialization ⚙️\`${{ steps.tf-init.outcome }}\`
             #### Terraform Validation 🤖\`${{ steps.tf-validate.outcome }}\`
             <details><summary>Validation Output</summary>
@@ -139,11 +148,18 @@ jobs:
 
             #### Terraform Apply 📖\`${{ steps.tf-apply.outcome }}\``
 
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            })
-
-      # jq -j -r '.resource_changes[] | (.change.actions | join(",")), " ", .address, "\n" ' foo.json
+            if (botComment) {
+              github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: output
+              })
+            } else {
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: output
+              })
+            }
