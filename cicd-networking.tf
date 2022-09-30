@@ -19,7 +19,7 @@
 # source repository
 
 module "branch-network-cicd-repo" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git/modules/source-repository?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v18.0.0"
   for_each = (
     try(local.cicd_repositories.networking.type, null) == "sourcerepo"
     ? { 0 = local.cicd_repositories.networking }
@@ -51,7 +51,7 @@ module "branch-network-cicd-repo" {
 # SA used by CI/CD workflows to impersonate automation SAs
 
 module "branch-network-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git/modules/iam-service-account?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v18.0.0"
   for_each = (
     try(local.cicd_repositories.networking.name, null) != null
     ? { 0 = local.cicd_repositories.networking }
