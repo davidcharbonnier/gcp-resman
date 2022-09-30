@@ -1,5 +1,3 @@
-outputs_location = "~/Projets/Perso/gcp/fast-config"
-
 cicd_repositories = {
   data_platform_dev  = null
   data_platform_prod = null
