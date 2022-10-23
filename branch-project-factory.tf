@@ -16,6 +16,58 @@
 
 # tfdoc:file:description Project factory stage resources.
 
+module "branch-pf-folder" {
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v18.0.0"
+  count  = var.fast_features.project_factory ? 1 : 0
+  parent = "organizations/${var.organization.id}"
+  name   = "Projects"
+  tag_bindings = {
+    context = try(
+      module.organization.tag_values["${var.tag_names.context}/projects"].id, null
+    )
+  }
+}
+
+module "branch-pf-dev-folder" {
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v18.0.0"
+  count  = var.fast_features.project_factory ? 1 : 0
+  parent = module.branch-pf-folder.0.id
+  name   = "Development"
+  iam = {
+    "roles/owner"                          = [module.branch-pf-dev-sa.0.iam_email]
+    "roles/logging.admin"                  = [module.branch-pf-dev-sa.0.iam_email]
+    "roles/resourcemanager.folderAdmin"    = [module.branch-pf-dev-sa.0.iam_email]
+    "roles/resourcemanager.projectCreator" = [module.branch-pf-dev-sa.0.iam_email]
+    "roles/compute.xpnAdmin"               = [module.branch-pf-dev-sa.0.iam_email]
+  }
+  tag_bindings = {
+    context = try(
+      module.organization.tag_values["${var.tag_names.environment}/development"].id,
+      null
+    )
+  }
+}
+
+module "branch-pf-prod-folder" {
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v18.0.0"
+  count  = var.fast_features.project_factory ? 1 : 0
+  parent = module.branch-pf-folder.0.id
+  name   = "Production"
+  iam = {
+    "roles/owner"                          = [module.branch-pf-prod-sa.0.iam_email]
+    "roles/logging.admin"                  = [module.branch-pf-prod-sa.0.iam_email]
+    "roles/resourcemanager.folderAdmin"    = [module.branch-pf-prod-sa.0.iam_email]
+    "roles/resourcemanager.projectCreator" = [module.branch-pf-prod-sa.0.iam_email]
+    "roles/compute.xpnAdmin"               = [module.branch-pf-prod-sa.0.iam_email]
+  }
+  tag_bindings = {
+    context = try(
+      module.organization.tag_values["${var.tag_names.environment}/production"].id,
+      null
+    )
+  }
+}
+
 module "branch-pf-dev-sa" {
   source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v18.0.0"
   count      = var.fast_features.project_factory ? 1 : 0
