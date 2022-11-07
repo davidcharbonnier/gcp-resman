@@ -38,3 +38,11 @@ cicd_repositories = {
     type              = "github"
   }
 }
+
+team_folders = {
+  infra = {
+    descriptive_name     = "Infra projects"
+    group_iam            = {}
+    impersonation_groups = []
+  }
+}

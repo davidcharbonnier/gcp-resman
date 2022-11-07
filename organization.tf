@@ -154,7 +154,6 @@ module "organization" {
         sandbox    = null
         security   = null
         teams      = null
-        projects   = null
       }
     }
     (var.tag_names.environment) = {
