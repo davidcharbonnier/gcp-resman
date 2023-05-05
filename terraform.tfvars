@@ -1,6 +1,4 @@
 cicd_repositories = {
-  data_platform_dev  = null
-  data_platform_prod = null
   gke_dev = {
     branch            = null
     identity_provider = "github"
