@@ -19,7 +19,7 @@
 # source repositories
 
 module "branch-gke-dev-cicd-repo" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v21.0.0"
   for_each = (
     try(local.cicd_repositories.gke_dev.type, null) == "sourcerepo"
     ? { 0 = local.cicd_repositories.gke_dev }
@@ -55,7 +55,7 @@ module "branch-gke-dev-cicd-repo" {
 }
 
 module "branch-gke-prod-cicd-repo" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v21.0.0"
   for_each = (
     try(local.cicd_repositories.gke_prod.type, null) == "sourcerepo"
     ? { 0 = local.cicd_repositories.gke_prod }
@@ -89,21 +89,21 @@ module "branch-gke-prod-cicd-repo" {
 # SAs used by CI/CD workflows to impersonate automation SAs
 
 module "branch-gke-dev-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v21.0.0"
   for_each = (
     try(local.cicd_repositories.gke_dev.name, null) != null
     ? { 0 = local.cicd_repositories.gke_dev }
     : {}
   )
-  project_id  = var.automation.project_id
-  name        = "dev-resman-gke-1"
-  description = "Terraform CI/CD GKE development service account."
-  prefix      = var.prefix
+  project_id   = var.automation.project_id
+  name         = "dev-resman-gke-1"
+  display_name = "Terraform CI/CD GKE development service account."
+  prefix       = var.prefix
   iam = (
     each.value.type == "sourcerepo"
     # used directly from the cloud build trigger for source repos
     ? {
-      "roles/iam.serviceAccountUser" = local.automation_resman_sa
+      "roles/iam.serviceAccountUser" = local.automation_resman_sa_iam
     }
     # impersonated via workload identity federation for external repos
     : {
@@ -132,21 +132,21 @@ module "branch-gke-dev-sa-cicd" {
 }
 
 module "branch-gke-prod-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v21.0.0"
   for_each = (
     try(local.cicd_repositories.gke_prod.name, null) != null
     ? { 0 = local.cicd_repositories.gke_prod }
     : {}
   )
-  project_id  = var.automation.project_id
-  name        = "prod-resman-gke-1"
-  description = "Terraform CI/CD GKE production service account."
-  prefix      = var.prefix
+  project_id   = var.automation.project_id
+  name         = "prod-resman-gke-1"
+  display_name = "Terraform CI/CD GKE production service account."
+  prefix       = var.prefix
   iam = (
     each.value.type == "sourcerepo"
     # used directly from the cloud build trigger for source repos
     ? {
-      "roles/iam.serviceAccountUser" = local.automation_resman_sa
+      "roles/iam.serviceAccountUser" = local.automation_resman_sa_iam
     }
     # impersonated via workload identity federation for external repos
     : {

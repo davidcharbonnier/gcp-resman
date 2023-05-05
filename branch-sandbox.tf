@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Google LLC
+ * Copyright 2023 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,8 @@
 
 # tfdoc:file:description Sandbox stage resources.
 
-moved {
-  from = module.branch-sandbox-folder
-  to   = module.branch-sandbox-folder.0
-}
-
 module "branch-sandbox-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v21.0.0"
   count  = var.fast_features.sandbox ? 1 : 0
   parent = "organizations/${var.organization.id}"
   name   = "Sandbox"
@@ -32,16 +27,9 @@ module "branch-sandbox-folder" {
     "roles/resourcemanager.folderAdmin"    = [module.branch-sandbox-sa.0.iam_email]
     "roles/resourcemanager.projectCreator" = [module.branch-sandbox-sa.0.iam_email]
   }
-  policy_boolean = {
-    "constraints/sql.restrictPublicIp" = false
-  }
-  policy_list = {
-    "constraints/compute.vmExternalIpAccess" = {
-      inherit_from_parent = false
-      suggested_value     = null
-      status              = true
-      values              = []
-    }
+  org_policies = {
+    "sql.restrictPublicIp"       = { rules = [{ enforce = false }] }
+    "compute.vmExternalIpAccess" = { rules = [{ allow = { all = true } }] }
   }
   tag_bindings = {
     context = try(
@@ -50,13 +38,8 @@ module "branch-sandbox-folder" {
   }
 }
 
-moved {
-  from = module.branch-sandbox-gcs
-  to   = module.branch-sandbox-gcs.0
-}
-
 module "branch-sandbox-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v18.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v21.0.0"
   count         = var.fast_features.sandbox ? 1 : 0
   project_id    = var.automation.project_id
   name          = "dev-resman-sbox-0"
@@ -69,16 +52,11 @@ module "branch-sandbox-gcs" {
   }
 }
 
-moved {
-  from = module.branch-sandbox-sa
-  to   = module.branch-sandbox-sa.0
-}
-
 module "branch-sandbox-sa" {
-  source      = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v18.0.0"
-  count       = var.fast_features.sandbox ? 1 : 0
-  project_id  = var.automation.project_id
-  name        = "dev-resman-sbox-0"
-  description = "Terraform resman sandbox service account."
-  prefix      = var.prefix
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v21.0.0"
+  count        = var.fast_features.sandbox ? 1 : 0
+  project_id   = var.automation.project_id
+  name         = "dev-resman-sbox-0"
+  display_name = "Terraform resman sandbox service account."
+  prefix       = var.prefix
 }

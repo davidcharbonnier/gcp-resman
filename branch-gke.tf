@@ -17,7 +17,7 @@
 # tfdoc:file:description GKE multitenant stage resources.
 
 module "branch-gke-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v21.0.0"
   count  = var.fast_features.gke ? 1 : 0
   parent = "organizations/${var.organization.id}"
   name   = "GKE"
@@ -29,7 +29,7 @@ module "branch-gke-folder" {
 }
 
 module "branch-gke-dev-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v21.0.0"
   count  = var.fast_features.gke ? 1 : 0
   parent = module.branch-gke-folder.0.id
   name   = "Development"
@@ -49,7 +49,7 @@ module "branch-gke-dev-folder" {
 }
 
 module "branch-gke-prod-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v21.0.0"
   count  = var.fast_features.gke ? 1 : 0
   parent = module.branch-gke-folder.0.id
   name   = "Production"
@@ -69,47 +69,55 @@ module "branch-gke-prod-folder" {
 }
 
 module "branch-gke-dev-sa" {
-  source      = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v18.0.0"
-  count       = var.fast_features.gke ? 1 : 0
-  project_id  = var.automation.project_id
-  name        = "dev-resman-gke-0"
-  description = "Terraform gke multitenant dev service account."
-  prefix      = var.prefix
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v21.0.0"
+  count        = var.fast_features.gke ? 1 : 0
+  project_id   = var.automation.project_id
+  name         = "dev-resman-gke-0"
+  display_name = "Terraform gke multitenant dev service account."
+  prefix       = var.prefix
   iam = {
     "roles/iam.serviceAccountTokenCreator" = concat(
-      ["group:${local.groups.gcp-devops}"],
+      (
+        local.groups.gcp-devops == null
+        ? []
+        : ["group:${local.groups.gcp-devops}"]
+      ),
       compact([
         try(module.branch-gke-dev-sa-cicd.0.iam_email, null)
       ])
     )
   }
   iam_storage_roles = {
-    (var.automation.outputs_bucket) = ["roles/storage.admin"]
+    (var.automation.outputs_bucket) = ["roles/storage.objectAdmin"]
   }
 }
 
 module "branch-gke-prod-sa" {
-  source      = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v18.0.0"
-  count       = var.fast_features.gke ? 1 : 0
-  project_id  = var.automation.project_id
-  name        = "prod-resman-gke-0"
-  description = "Terraform gke multitenant prod service account."
-  prefix      = var.prefix
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v21.0.0"
+  count        = var.fast_features.gke ? 1 : 0
+  project_id   = var.automation.project_id
+  name         = "prod-resman-gke-0"
+  display_name = "Terraform gke multitenant prod service account."
+  prefix       = var.prefix
   iam = {
     "roles/iam.serviceAccountTokenCreator" = concat(
-      ["group:${local.groups.gcp-devops}"],
+      (
+        local.groups.gcp-devops == null
+        ? []
+        : ["group:${local.groups.gcp-devops}"]
+      ),
       compact([
         try(module.branch-gke-prod-sa-cicd.0.iam_email, null)
       ])
     )
   }
   iam_storage_roles = {
-    (var.automation.outputs_bucket) = ["roles/storage.admin"]
+    (var.automation.outputs_bucket) = ["roles/storage.objectAdmin"]
   }
 }
 
 module "branch-gke-dev-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v18.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v21.0.0"
   count         = var.fast_features.gke ? 1 : 0
   project_id    = var.automation.project_id
   name          = "dev-resman-gke-0"
@@ -123,7 +131,7 @@ module "branch-gke-dev-gcs" {
 }
 
 module "branch-gke-prod-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v18.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v21.0.0"
   count         = var.fast_features.gke ? 1 : 0
   project_id    = var.automation.project_id
   name          = "prod-resman-gke-0"

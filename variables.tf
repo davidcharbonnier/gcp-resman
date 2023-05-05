@@ -18,7 +18,7 @@
 # the tfvars file generated in stage 00 and stored in its outputs
 
 variable "automation" {
-  # tfdoc:variable:source 00-bootstrap
+  # tfdoc:variable:source 0-bootstrap
   description = "Automation resources created by the bootstrap stage."
   type = object({
     outputs_bucket          = string
@@ -36,65 +36,67 @@ variable "automation" {
 }
 
 variable "billing_account" {
-  # tfdoc:variable:source 00-bootstrap
-  description = "Billing account id and organization id ('nnnnnnnn' or null)."
+  # tfdoc:variable:source 0-bootstrap
+  description = "Billing account id. If billing account is not part of the same org set `is_org_level` to `false`. To disable handling of billing IAM roles set `no_iam` to `true`."
   type = object({
-    id              = string
-    organization_id = number
+    id           = string
+    is_org_level = optional(bool, true)
+    no_iam       = optional(bool, false)
   })
+  nullable = false
 }
 
 variable "cicd_repositories" {
   description = "CI/CD repository configuration. Identity providers reference keys in the `automation.federated_identity_providers` variable. Set to null to disable, or set individual repositories to null if not needed."
   type = object({
-    data_platform_dev = object({
+    data_platform_dev = optional(object({
       branch            = string
       identity_provider = string
       name              = string
       type              = string
-    })
-    data_platform_prod = object({
+    }))
+    data_platform_prod = optional(object({
       branch            = string
       identity_provider = string
       name              = string
       type              = string
-    })
-    gke_dev = object({
+    }))
+    gke_dev = optional(object({
       branch            = string
       identity_provider = string
       name              = string
       type              = string
-    })
-    gke_prod = object({
+    }))
+    gke_prod = optional(object({
       branch            = string
       identity_provider = string
       name              = string
       type              = string
-    })
-    networking = object({
+    }))
+    networking = optional(object({
       branch            = string
       identity_provider = string
       name              = string
       type              = string
-    })
-    project_factory_dev = object({
+    }))
+    project_factory_dev = optional(object({
       branch            = string
       identity_provider = string
       name              = string
       type              = string
-    })
-    project_factory_prod = object({
+    }))
+    project_factory_prod = optional(object({
       branch            = string
       identity_provider = string
       name              = string
       type              = string
-    })
-    security = object({
+    }))
+    security = optional(object({
       branch            = string
       identity_provider = string
       name              = string
       type              = string
-    })
+    }))
   })
   default = null
   validation {
@@ -127,7 +129,7 @@ variable "cicd_repositories" {
 }
 
 variable "custom_roles" {
-  # tfdoc:variable:source 00-bootstrap
+  # tfdoc:variable:source 0-bootstrap
   description = "Custom roles defined at the org level, in key => id format."
   type = object({
     service_project_network_admin = string
@@ -135,43 +137,41 @@ variable "custom_roles" {
   default = null
 }
 
+variable "data_dir" {
+  description = "Relative path for the folder storing configuration data."
+  type        = string
+  default     = "data"
+}
+
 variable "fast_features" {
-  # tfdoc:variable:source 00-bootstrap
+  # tfdoc:variable:source 0-0-bootstrap
   description = "Selective control for top-level FAST features."
   type = object({
-    data_platform   = bool
-    gke             = bool
-    project_factory = bool
-    sandbox         = bool
-    teams           = bool
+    data_platform   = optional(bool, false)
+    gke             = optional(bool, false)
+    project_factory = optional(bool, false)
+    sandbox         = optional(bool, false)
+    teams           = optional(bool, false)
   })
-  default = {
-    data_platform   = true
-    gke             = true
-    project_factory = true
-    sandbox         = true
-    teams           = true
-  }
-  # nullable = false
+  default  = {}
+  nullable = false
 }
 
 variable "groups" {
-  # tfdoc:variable:source 00-bootstrap
-  description = "Group names to grant organization-level permissions."
-  type        = map(string)
+  # tfdoc:variable:source 0-bootstrap
   # https://cloud.google.com/docs/enterprise/setup-checklist
-  default = {
-    gcp-billing-admins      = "gcp-billing-admins",
-    gcp-devops              = "gcp-devops",
-    gcp-network-admins      = "gcp-network-admins"
-    gcp-organization-admins = "gcp-organization-admins"
-    gcp-security-admins     = "gcp-security-admins"
-    gcp-support             = "gcp-support"
-  }
+  description = "Group names to grant organization-level permissions."
+  type = object({
+    gcp-devops          = optional(string)
+    gcp-network-admins  = optional(string)
+    gcp-security-admins = optional(string)
+  })
+  default  = {}
+  nullable = false
 }
 
 variable "locations" {
-  # tfdoc:variable:source 00-bootstrap
+  # tfdoc:variable:source 0-bootstrap
   description = "Optional locations for GCS, BigQuery, and logging buckets created here."
   type = object({
     bq      = string
@@ -189,7 +189,7 @@ variable "locations" {
 }
 
 variable "organization" {
-  # tfdoc:variable:source 00-bootstrap
+  # tfdoc:variable:source 0-bootstrap
   description = "Organization details."
   type = object({
     domain      = string
@@ -207,13 +207,13 @@ variable "organization_policy_configs" {
 }
 
 variable "outputs_location" {
-  description = "Enable writing provider, tfvars and CI/CD workflow files to local filesystem. Leave null to disable"
+  description = "Enable writing provider, tfvars and CI/CD workflow files to local filesystem. Leave null to disable."
   type        = string
   default     = null
 }
 
 variable "prefix" {
-  # tfdoc:variable:source 00-bootstrap
+  # tfdoc:variable:source 0-bootstrap
   description = "Prefix used for resources that need unique names. Use 9 characters or less."
   type        = string
 
@@ -228,10 +228,12 @@ variable "tag_names" {
   type = object({
     context     = string
     environment = string
+    tenant      = string
   })
   default = {
     context     = "context"
     environment = "environment"
+    tenant      = "tenant"
   }
   nullable = false
   validation {

@@ -24,7 +24,7 @@ moved {
 }
 
 module "branch-pf-dev-cicd-repo" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v21.0.0"
   for_each = (
     try(local.cicd_repositories.project_factory_dev.type, null) == "sourcerepo"
     ? { 0 = local.cicd_repositories.project_factory_dev }
@@ -61,7 +61,7 @@ moved {
 }
 
 module "branch-pf-prod-cicd-repo" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v21.0.0"
   for_each = (
     try(local.cicd_repositories.project_factory_prod.type, null) == "sourcerepo"
     ? { 0 = local.cicd_repositories.project_factory_prod }
@@ -100,21 +100,21 @@ moved {
 }
 
 module "branch-pf-dev-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v21.0.0"
   for_each = (
     try(local.cicd_repositories.project_factory_dev.name, null) != null
     ? { 0 = local.cicd_repositories.project_factory_dev }
     : {}
   )
-  project_id  = var.automation.project_id
-  name        = "dev-pf-resman-pf-1"
-  description = "Terraform CI/CD project factory development service account."
-  prefix      = var.prefix
+  project_id   = var.automation.project_id
+  name         = "dev-pf-resman-pf-1"
+  display_name = "Terraform CI/CD project factory development service account."
+  prefix       = var.prefix
   iam = (
     each.value.type == "sourcerepo"
     # used directly from the cloud build trigger for source repos
     ? {
-      "roles/iam.serviceAccountUser" = local.automation_resman_sa
+      "roles/iam.serviceAccountUser" = local.automation_resman_sa_iam
     }
     # impersonated via workload identity federation for external repos
     : {
@@ -148,21 +148,21 @@ moved {
 }
 
 module "branch-pf-prod-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v21.0.0"
   for_each = (
     try(local.cicd_repositories.project_factory_prod.name, null) != null
     ? { 0 = local.cicd_repositories.project_factory_prod }
     : {}
   )
-  project_id  = var.automation.project_id
-  name        = "prod-pf-resman-pf-1"
-  description = "Terraform CI/CD project factory production service account."
-  prefix      = var.prefix
+  project_id   = var.automation.project_id
+  name         = "prod-pf-resman-pf-1"
+  display_name = "Terraform CI/CD project factory production service account."
+  prefix       = var.prefix
   iam = (
     each.value.type == "sourcerepo"
     # used directly from the cloud build trigger for source repos
     ? {
-      "roles/iam.serviceAccountUser" = local.automation_resman_sa
+      "roles/iam.serviceAccountUser" = local.automation_resman_sa_iam
     }
     # impersonated via workload identity federation for external repos
     : {

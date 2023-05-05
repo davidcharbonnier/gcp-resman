@@ -17,15 +17,13 @@
 locals {
   # convenience flags that express where billing account resides
   automation_resman_sa = try(
-    [format(
-      "serviceAccount:%s",
-      data.google_client_openid_userinfo.provider_identity.0.email
-    )],
-    []
+    data.google_client_openid_userinfo.provider_identity.0.email, null
   )
-  billing_ext     = var.billing_account.organization_id == null
-  billing_org     = var.billing_account.organization_id == var.organization.id
-  billing_org_ext = !local.billing_ext && !local.billing_org
+  automation_resman_sa_iam = (
+    local.automation_resman_sa == null
+    ? []
+    : ["serviceAccount:${local.automation_resman_sa}"]
+  )
   branch_optional_sa_lists = {
     dp-dev   = compact([try(module.branch-dp-dev-sa.0.iam_email, "")])
     dp-prod  = compact([try(module.branch-dp-prod-sa.0.iam_email, "")])
@@ -51,16 +49,16 @@ locals {
   }
   cicd_workflow_var_files = {
     stage_2 = [
-      "00-bootstrap.auto.tfvars.json",
-      "01-resman.auto.tfvars.json",
+      "0-bootstrap.auto.tfvars.json",
+      "1-resman.auto.tfvars.json",
       "globals.auto.tfvars.json"
     ]
     stage_3 = [
-      "00-bootstrap.auto.tfvars.json",
-      "01-resman.auto.tfvars.json",
+      "0-bootstrap.auto.tfvars.json",
+      "1-resman.auto.tfvars.json",
       "globals.auto.tfvars.json",
-      "02-networking.auto.tfvars.json",
-      "02-security.auto.tfvars.json"
+      "2-networking.auto.tfvars.json",
+      "2-security.auto.tfvars.json"
     ]
   }
   custom_roles = coalesce(var.custom_roles, {})
@@ -74,8 +72,7 @@ locals {
     k => "${v}@${var.organization.domain}"
   }
   groups_iam = {
-    for k, v in local.groups :
-    k => "group:${v}"
+    for k, v in local.groups : k => v != null ? "group:${v}" : null
   }
   identity_providers = coalesce(
     try(var.automation.federated_identity_providers, null), {}

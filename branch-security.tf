@@ -17,10 +17,10 @@
 # tfdoc:file:description Security stage resources.
 
 module "branch-security-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v21.0.0"
   parent = "organizations/${var.organization.id}"
   name   = "Security"
-  group_iam = {
+  group_iam = local.groups.gcp-security-admins == null ? {} : {
     (local.groups.gcp-security-admins) = [
       # add any needed roles for resources/services not managed via Terraform,
       # e.g.
@@ -49,23 +49,23 @@ module "branch-security-folder" {
 # automation service account and bucket
 
 module "branch-security-sa" {
-  source      = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v18.0.0"
-  project_id  = var.automation.project_id
-  name        = "prod-resman-sec-0"
-  description = "Terraform resman security service account."
-  prefix      = var.prefix
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v21.0.0"
+  project_id   = var.automation.project_id
+  name         = "security-0"
+  display_name = "Terraform resman security service account."
+  prefix       = var.prefix
   iam = {
     "roles/iam.serviceAccountTokenCreator" = compact([
       try(module.branch-security-sa-cicd.0.iam_email, null)
     ])
   }
   iam_storage_roles = {
-    (var.automation.outputs_bucket) = ["roles/storage.admin"]
+    (var.automation.outputs_bucket) = ["roles/storage.objectAdmin"]
   }
 }
 
 module "branch-security-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v18.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v21.0.0"
   project_id    = var.automation.project_id
   name          = "prod-resman-sec-0"
   prefix        = var.prefix

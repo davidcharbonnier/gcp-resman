@@ -17,10 +17,10 @@
 # tfdoc:file:description Networking stage resources.
 
 module "branch-network-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v21.0.0"
   parent = "organizations/${var.organization.id}"
   name   = "Networking"
-  group_iam = {
+  group_iam = local.groups.gcp-network-admins == null ? {} : {
     (local.groups.gcp-network-admins) = [
       # add any needed roles for resources/services not managed via Terraform,
       # or replace editor with ~viewer if no broad resource management needed
@@ -46,7 +46,7 @@ module "branch-network-folder" {
 }
 
 module "branch-network-prod-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v21.0.0"
   parent = module.branch-network-folder.id
   name   = "Production"
   iam = {
@@ -65,7 +65,7 @@ module "branch-network-prod-folder" {
 }
 
 module "branch-network-dev-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v18.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v21.0.0"
   parent = module.branch-network-folder.id
   name   = "Development"
   iam = {
@@ -86,23 +86,23 @@ module "branch-network-dev-folder" {
 # automation service account and bucket
 
 module "branch-network-sa" {
-  source      = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v18.0.0"
-  project_id  = var.automation.project_id
-  name        = "prod-resman-net-0"
-  description = "Terraform resman networking service account."
-  prefix      = var.prefix
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v21.0.0"
+  project_id   = var.automation.project_id
+  name         = "prod-resman-net-0"
+  display_name = "Terraform resman networking service account."
+  prefix       = var.prefix
   iam = {
     "roles/iam.serviceAccountTokenCreator" = compact([
       try(module.branch-network-sa-cicd.0.iam_email, null)
     ])
   }
   iam_storage_roles = {
-    (var.automation.outputs_bucket) = ["roles/storage.admin"]
+    (var.automation.outputs_bucket) = ["roles/storage.objectAdmin"]
   }
 }
 
 module "branch-network-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v18.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v21.0.0"
   project_id    = var.automation.project_id
   name          = "prod-resman-net-0"
   prefix        = var.prefix
