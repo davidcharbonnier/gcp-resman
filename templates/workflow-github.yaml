@@ -17,7 +17,7 @@ name: "FAST ${stage_name} stage"
 on:
   pull_request:
     branches:
-      - main
+      - master
     types:
       - closed
       - opened
