@@ -17,7 +17,7 @@
 # tfdoc:file:description Sandbox stage resources.
 
 module "branch-sandbox-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v21.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v24.0.0"
   count  = var.fast_features.sandbox ? 1 : 0
   parent = "organizations/${var.organization.id}"
   name   = "Sandbox"
@@ -39,7 +39,7 @@ module "branch-sandbox-folder" {
 }
 
 module "branch-sandbox-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v21.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v24.0.0"
   count         = var.fast_features.sandbox ? 1 : 0
   project_id    = var.automation.project_id
   name          = "dev-resman-sbox-0"
@@ -53,10 +53,24 @@ module "branch-sandbox-gcs" {
 }
 
 module "branch-sandbox-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v21.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v24.0.0"
   count        = var.fast_features.sandbox ? 1 : 0
   project_id   = var.automation.project_id
   name         = "dev-resman-sbox-0"
   display_name = "Terraform resman sandbox service account."
   prefix       = var.prefix
+}
+
+resource "google_organization_iam_member" "org_policy_admin_sandbox" {
+  count  = var.fast_features.sandbox ? 1 : 0
+  org_id = var.organization.id
+  role   = "roles/orgpolicy.policyAdmin"
+  member = module.branch-sandbox-sa.0.iam_email
+  condition {
+    title       = "org_policy_tag_sandbox_scoped"
+    description = "Org policy tag scoped grant for sandbox."
+    expression  = <<-END
+    resource.matchTag('${var.organization.id}/${var.tag_names.context}', 'sandbox')
+    END
+  }
 }

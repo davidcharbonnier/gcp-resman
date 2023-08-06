@@ -19,7 +19,7 @@
 # source repositories
 
 module "branch-gke-dev-cicd-repo" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v21.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v24.0.0"
   for_each = (
     try(local.cicd_repositories.gke_dev.type, null) == "sourcerepo"
     ? { 0 = local.cicd_repositories.gke_dev }
@@ -55,7 +55,7 @@ module "branch-gke-dev-cicd-repo" {
 }
 
 module "branch-gke-prod-cicd-repo" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v21.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v24.0.0"
   for_each = (
     try(local.cicd_repositories.gke_prod.type, null) == "sourcerepo"
     ? { 0 = local.cicd_repositories.gke_prod }
@@ -89,7 +89,7 @@ module "branch-gke-prod-cicd-repo" {
 # SAs used by CI/CD workflows to impersonate automation SAs
 
 module "branch-gke-dev-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v21.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v24.0.0"
   for_each = (
     try(local.cicd_repositories.gke_dev.name, null) != null
     ? { 0 = local.cicd_repositories.gke_dev }
@@ -132,7 +132,7 @@ module "branch-gke-dev-sa-cicd" {
 }
 
 module "branch-gke-prod-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v21.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v24.0.0"
   for_each = (
     try(local.cicd_repositories.gke_prod.name, null) != null
     ? { 0 = local.cicd_repositories.gke_prod }
