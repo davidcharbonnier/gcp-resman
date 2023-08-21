@@ -17,7 +17,7 @@
 # tfdoc:file:description Data Platform stages resources.
 
 module "branch-dp-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v24.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v25.0.0"
   count  = var.fast_features.data_platform ? 1 : 0
   parent = "organizations/${var.organization.id}"
   name   = "Data Platform"
@@ -29,7 +29,7 @@ module "branch-dp-folder" {
 }
 
 module "branch-dp-dev-folder" {
-  source    = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v24.0.0"
+  source    = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v25.0.0"
   count     = var.fast_features.data_platform ? 1 : 0
   parent    = module.branch-dp-folder.0.id
   name      = "Development"
@@ -53,7 +53,7 @@ module "branch-dp-dev-folder" {
 }
 
 module "branch-dp-prod-folder" {
-  source    = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v24.0.0"
+  source    = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v25.0.0"
   count     = var.fast_features.data_platform ? 1 : 0
   parent    = module.branch-dp-folder.0.id
   name      = "Production"
@@ -77,7 +77,7 @@ module "branch-dp-prod-folder" {
 # automation service accounts and buckets
 
 module "branch-dp-dev-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v24.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v25.0.0"
   count        = var.fast_features.data_platform ? 1 : 0
   project_id   = var.automation.project_id
   name         = "dev-resman-dp-0"
@@ -94,7 +94,7 @@ module "branch-dp-dev-sa" {
 }
 
 module "branch-dp-prod-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v24.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v25.0.0"
   count        = var.fast_features.data_platform ? 1 : 0
   project_id   = var.automation.project_id
   name         = "prod-resman-dp-0"
@@ -111,7 +111,7 @@ module "branch-dp-prod-sa" {
 }
 
 module "branch-dp-dev-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v24.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v25.0.0"
   count         = var.fast_features.data_platform ? 1 : 0
   project_id    = var.automation.project_id
   name          = "dev-resman-dp-0"
@@ -125,7 +125,7 @@ module "branch-dp-dev-gcs" {
 }
 
 module "branch-dp-prod-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v24.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v25.0.0"
   count         = var.fast_features.data_platform ? 1 : 0
   project_id    = var.automation.project_id
   name          = "prod-resman-dp-0"

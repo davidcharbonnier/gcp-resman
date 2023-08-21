@@ -17,7 +17,7 @@
 # tfdoc:file:description Security stage resources.
 
 module "branch-security-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v24.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v25.0.0"
   parent = "organizations/${var.organization.id}"
   name   = "Security"
   group_iam = local.groups.gcp-security-admins == null ? {} : {
@@ -49,7 +49,7 @@ module "branch-security-folder" {
 # automation service account and bucket
 
 module "branch-security-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v24.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v25.0.0"
   project_id   = var.automation.project_id
   name         = "security-0"
   display_name = "Terraform resman security service account."
@@ -70,7 +70,7 @@ module "branch-security-sa" {
 }
 
 module "branch-security-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v24.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v25.0.0"
   project_id    = var.automation.project_id
   name          = "prod-resman-sec-0"
   prefix        = var.prefix

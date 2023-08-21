@@ -17,7 +17,7 @@
 # tfdoc:file:description Networking stage resources.
 
 module "branch-network-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v24.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v25.0.0"
   parent = "organizations/${var.organization.id}"
   name   = "Networking"
   group_iam = local.groups.gcp-network-admins == null ? {} : {
@@ -46,7 +46,7 @@ module "branch-network-folder" {
 }
 
 module "branch-network-prod-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v24.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v25.0.0"
   parent = module.branch-network-folder.id
   name   = "Production"
   iam = {
@@ -65,7 +65,7 @@ module "branch-network-prod-folder" {
 }
 
 module "branch-network-dev-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v24.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v25.0.0"
   parent = module.branch-network-folder.id
   name   = "Development"
   iam = {
@@ -86,7 +86,7 @@ module "branch-network-dev-folder" {
 # automation service account and bucket
 
 module "branch-network-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v24.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v25.0.0"
   project_id   = var.automation.project_id
   name         = "prod-resman-net-0"
   display_name = "Terraform resman networking service account."
@@ -102,7 +102,7 @@ module "branch-network-sa" {
 }
 
 module "branch-network-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v24.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v25.0.0"
   project_id    = var.automation.project_id
   name          = "prod-resman-net-0"
   prefix        = var.prefix
