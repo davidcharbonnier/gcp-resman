@@ -14,55 +14,54 @@
  * limitations under the License.
  */
 
-# tfdoc:file:description CI/CD resources for the networking branch.
+# tfdoc:file:description CI/CD resources for individual teams.
 
 # source repository
 
-module "branch-network-cicd-repo" {
+module "branch-teams-team-cicd-repo" {
   source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v25.0.0"
-  for_each = (
-    try(local.cicd_repositories.networking.type, null) == "sourcerepo"
-    ? { 0 = local.cicd_repositories.networking }
-    : {}
-  )
+  for_each = {
+    for k, v in coalesce(local.team_cicd_repositories, {}) : k => v
+    if v.cicd.type == "sourcerepo"
+  }
   project_id = var.automation.project_id
-  name       = each.value.name
+  name       = each.value.cicd.name
   iam = {
-    "roles/source.admin"  = [module.branch-network-sa.iam_email]
-    "roles/source.reader" = [module.branch-network-sa-cicd.0.iam_email]
+    "roles/source.admin"  = [module.branch-teams-team-sa[each.key].iam_email]
+    "roles/source.reader" = [module.branch-teams-team-sa-cicd[each.key].iam_email]
   }
   triggers = {
-    fast-02-networking = {
+    "fast-03-team-${each.key}" = {
       filename        = ".cloudbuild/workflow.yaml"
       included_files  = ["**/*tf", ".cloudbuild/workflow.yaml"]
-      service_account = module.branch-network-sa-cicd.0.id
+      service_account = module.branch-teams-team-sa-cicd[each.key].id
       substitutions   = {}
       template = {
         project_id  = null
-        branch_name = each.value.branch
-        repo_name   = each.value.name
+        branch_name = each.value.cicd.branch
+        repo_name   = each.value.cicd.name
         tag_name    = null
       }
     }
   }
-  depends_on = [module.branch-network-sa-cicd]
+  depends_on = [module.branch-teams-team-sa-cicd]
 }
 
 # SA used by CI/CD workflows to impersonate automation SAs
 
-module "branch-network-sa-cicd" {
+module "branch-teams-team-sa-cicd" {
   source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v25.0.0"
   for_each = (
-    try(local.cicd_repositories.networking.name, null) != null
-    ? { 0 = local.cicd_repositories.networking }
+    try(local.team_cicd_repositories, null) != null
+    ? local.team_cicd_repositories
     : {}
   )
   project_id   = var.automation.project_id
-  name         = "prod-resman-net-1"
-  display_name = "Terraform CI/CD stage 2 networking service account."
+  name         = "prod-teams-${each.key}-1"
+  display_name = "Terraform CI/CD team ${each.key} service account."
   prefix       = var.prefix
   iam = (
-    each.value.type == "sourcerepo"
+    each.value.cicd.type == "sourcerepo"
     # used directly from the cloud build trigger for source repos
     ? {
       "roles/iam.serviceAccountUser" = local.automation_resman_sa_iam
@@ -70,17 +69,17 @@ module "branch-network-sa-cicd" {
     # impersonated via workload identity federation for external repos
     : {
       "roles/iam.workloadIdentityUser" = [
-        each.value.branch == null
+        each.value.cicd.branch == null
         ? format(
-          local.identity_providers[each.value.identity_provider].principalset_tpl,
+          local.identity_providers[each.value.cicd.identity_provider].principalset_tpl,
           var.automation.federated_identity_pool,
-          each.value.name
+          each.value.cicd.name
         )
         : format(
-          local.identity_providers[each.value.identity_provider].principal_tpl,
+          local.identity_providers[each.value.cicd.identity_provider].principal_tpl,
           var.automation.federated_identity_pool,
-          each.value.name,
-          each.value.branch
+          each.value.cicd.name,
+          each.value.cicd.branch
         )
       ]
     }

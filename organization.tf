@@ -47,7 +47,7 @@ locals {
 }
 
 module "organization" {
-  source          = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/organization?ref=v24.0.0"
+  source          = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/organization?ref=v25.0.0"
   organization_id = "organizations/${var.organization.id}"
   # IAM additive bindings, granted via the restricted Organization Admin custom
   # role assigned in stage 00; they need to be additive to avoid conflicts

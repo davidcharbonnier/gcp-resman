@@ -1,16 +1,4 @@
 cicd_repositories = {
-  gke_dev = {
-    branch            = null
-    identity_provider = "github"
-    name              = "davidcharbonnier/gcp-gke"
-    type              = "github"
-  }
-  gke_prod = {
-    branch            = null
-    identity_provider = "github"
-    name              = "davidcharbonnier/gcp-gke"
-    type              = "github"
-  }
   networking = {
     branch            = null
     identity_provider = "github"
@@ -39,8 +27,14 @@ cicd_repositories = {
 
 team_folders = {
   infra = {
-    descriptive_name     = "Infra projects"
+    descriptive_name     = "Infra"
     group_iam            = {}
     impersonation_groups = []
+    cicd = {
+      branch            = null
+      identity_provider = "github"
+      name              = "davidcharbonnier/gcp-team-infra"
+      type              = "github"
+    }
   }
 }
