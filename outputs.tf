@@ -62,8 +62,8 @@ locals {
     for k, v in local.cicd_repositories : k => templatefile(
       "${path.module}/templates/workflow-${v.type}.yaml",
       merge(local.cicd_workflow_attrs[k], {
-        audience = try(
-          local.identity_providers[v.identity_provider].audience, null
+        audiences = try(
+          local.identity_providers[v.identity_provider].audiences, null
         )
         identity_provider = try(
           local.identity_providers[v.identity_provider].name, null
@@ -223,9 +223,9 @@ locals {
   tfvars = {
     folder_ids       = local.folder_ids
     service_accounts = local.service_accounts
-    tag_keys         = { for k, v in module.organization.tag_keys : k => v.id }
+    tag_keys         = { for k, v in try(module.organization.tag_keys, {}) : k => v.id }
     tag_names        = var.tag_names
-    tag_values       = { for k, v in module.organization.tag_values : k => v.id }
+    tag_values       = { for k, v in try(module.organization.tag_values, {}) : k => v.id }
   }
 }
 

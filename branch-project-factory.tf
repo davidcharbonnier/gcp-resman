@@ -17,7 +17,7 @@
 # tfdoc:file:description Project factory stage resources.
 
 module "branch-pf-dev-sa" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v25.0.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v26.0.0"
   count      = var.fast_features.project_factory ? 1 : 0
   project_id = var.automation.project_id
   name       = "dev-resman-pf-0"
@@ -35,7 +35,7 @@ module "branch-pf-dev-sa" {
 }
 
 module "branch-pf-prod-sa" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v25.0.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v26.0.0"
   count      = var.fast_features.project_factory ? 1 : 0
   project_id = var.automation.project_id
   name       = "prod-resman-pf-0"
@@ -53,7 +53,7 @@ module "branch-pf-prod-sa" {
 }
 
 module "branch-pf-dev-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v25.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v26.0.0"
   count         = var.fast_features.project_factory ? 1 : 0
   project_id    = var.automation.project_id
   name          = "dev-resman-pf-0"
@@ -67,7 +67,7 @@ module "branch-pf-dev-gcs" {
 }
 
 module "branch-pf-prod-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v25.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v26.0.0"
   count         = var.fast_features.project_factory ? 1 : 0
   project_id    = var.automation.project_id
   name          = "prod-resman-pf-0"
@@ -77,35 +77,5 @@ module "branch-pf-prod-gcs" {
   versioning    = true
   iam = {
     "roles/storage.objectAdmin" = [module.branch-pf-prod-sa.0.iam_email]
-  }
-}
-
-resource "google_organization_iam_member" "org_policy_admin_pf_dev" {
-  count  = var.fast_features.project_factory ? 1 : 0
-  org_id = var.organization.id
-  role   = "roles/orgpolicy.policyAdmin"
-  member = module.branch-pf-dev-sa.0.iam_email
-  condition {
-    title       = "org_policy_tag_pf_scoped_dev"
-    description = "Org policy tag scoped grant for project factory dev."
-    expression  = <<-END
-    resource.matchTag('${var.organization.id}/${var.tag_names.context}', 'teams')
-    &&
-    resource.matchTag('${var.organization.id}/${var.tag_names.environment}', 'development')
-    END
-  }
-}
-
-resource "google_organization_iam_member" "org_policy_admin_pf_prod" {
-  count  = var.fast_features.project_factory ? 1 : 0
-  org_id = var.organization.id
-  role   = "roles/orgpolicy.policyAdmin"
-  member = module.branch-pf-prod-sa.0.iam_email
-  condition {
-    title       = "org_policy_tag_pf_scoped_prod"
-    description = "Org policy tag scoped grant for project factory prod."
-    expression  = <<-END
-    resource.matchTag('${var.organization.id}/${var.tag_names.context}', 'teams')
-    END
   }
 }
