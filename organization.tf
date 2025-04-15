@@ -37,7 +37,7 @@ locals {
 }
 
 module "organization" {
-  source          = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/organization?ref=v27.0.0"
+  source          = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/organization?ref=v28.0.0"
   organization_id = "organizations/${var.organization.id}"
   # additive bindings via delegated IAM grant set in stage 0
   iam_bindings_additive = local.iam_bindings_additive

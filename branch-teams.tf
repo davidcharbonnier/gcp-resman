@@ -21,7 +21,7 @@
 ############### top-level Teams branch and automation resources ###############
 
 module "branch-teams-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v27.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v28.0.0"
   count  = var.fast_features.teams ? 1 : 0
   parent = "organizations/${var.organization.id}"
   name   = "Teams"
@@ -40,19 +40,22 @@ module "branch-teams-folder" {
 }
 
 module "branch-teams-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v27.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v28.0.0"
   count        = var.fast_features.teams ? 1 : 0
   project_id   = var.automation.project_id
   name         = "prod-resman-teams-0"
   display_name = "Terraform resman teams service account."
   prefix       = var.prefix
+  iam_project_roles = {
+    (var.automation.project_id) = ["roles/serviceusage.serviceUsageConsumer"]
+  }
   iam_storage_roles = {
     (var.automation.outputs_bucket) = ["roles/storage.objectAdmin"]
   }
 }
 
 module "branch-teams-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v27.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v28.0.0"
   count         = var.fast_features.teams ? 1 : 0
   project_id    = var.automation.project_id
   name          = "prod-resman-teams-0"
@@ -68,7 +71,7 @@ module "branch-teams-gcs" {
 ################## per-team folders and automation resources ##################
 
 module "branch-teams-team-folder" {
-  source   = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v27.0.0"
+  source   = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v28.0.0"
   for_each = var.fast_features.teams ? coalesce(var.team_folders, {}) : {}
   parent   = module.branch-teams-folder.0.id
   name     = each.value.descriptive_name
@@ -82,8 +85,10 @@ module "branch-teams-team-folder" {
   group_iam = each.value.group_iam == null ? {} : each.value.group_iam
 }
 
+# TODO: move into team's own IaC project
+
 module "branch-teams-team-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v27.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v28.0.0"
   for_each     = var.fast_features.teams ? coalesce(var.team_folders, {}) : {}
   project_id   = var.automation.project_id
   name         = "prod-teams-${each.key}-0"
@@ -102,7 +107,7 @@ module "branch-teams-team-sa" {
 }
 
 module "branch-teams-team-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v27.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v28.0.0"
   for_each      = var.fast_features.teams ? coalesce(var.team_folders, {}) : {}
   project_id    = var.automation.project_id
   name          = "prod-teams-${each.key}-0"
@@ -118,7 +123,7 @@ module "branch-teams-team-gcs" {
 # per-team environment folders where project factory SAs can create projects
 
 module "branch-teams-team-dev-folder" {
-  source   = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v27.0.0"
+  source   = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v28.0.0"
   for_each = var.fast_features.teams ? coalesce(var.team_folders, {}) : {}
   parent   = module.branch-teams-team-folder[each.key].id
   # naming: environment descriptive name
@@ -143,7 +148,7 @@ module "branch-teams-team-dev-folder" {
 }
 
 module "branch-teams-team-prod-folder" {
-  source   = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v27.0.0"
+  source   = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v28.0.0"
   for_each = var.fast_features.teams ? coalesce(var.team_folders, {}) : {}
   parent   = module.branch-teams-team-folder[each.key].id
   # naming: environment descriptive name

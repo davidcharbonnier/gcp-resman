@@ -17,7 +17,7 @@
 # tfdoc:file:description Project factory stage resources.
 
 module "branch-pf-dev-sa" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v27.0.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v28.0.0"
   count      = var.fast_features.project_factory ? 1 : 0
   project_id = var.automation.project_id
   name       = "dev-resman-pf-0"
@@ -29,13 +29,16 @@ module "branch-pf-dev-sa" {
       try(module.branch-pf-dev-sa-cicd.0.iam_email, null)
     ])
   }
+  iam_project_roles = {
+    (var.automation.project_id) = ["roles/serviceusage.serviceUsageConsumer"]
+  }
   iam_storage_roles = {
     (var.automation.outputs_bucket) = ["roles/storage.objectAdmin"]
   }
 }
 
 module "branch-pf-prod-sa" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v27.0.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v28.0.0"
   count      = var.fast_features.project_factory ? 1 : 0
   project_id = var.automation.project_id
   name       = "prod-resman-pf-0"
@@ -47,13 +50,16 @@ module "branch-pf-prod-sa" {
       try(module.branch-pf-prod-sa-cicd.0.iam_email, null)
     ])
   }
+  iam_project_roles = {
+    (var.automation.project_id) = ["roles/serviceusage.serviceUsageConsumer"]
+  }
   iam_storage_roles = {
     (var.automation.outputs_bucket) = ["roles/storage.objectAdmin"]
   }
 }
 
 module "branch-pf-dev-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v27.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v28.0.0"
   count         = var.fast_features.project_factory ? 1 : 0
   project_id    = var.automation.project_id
   name          = "dev-resman-pf-0"
@@ -67,7 +73,7 @@ module "branch-pf-dev-gcs" {
 }
 
 module "branch-pf-prod-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v27.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v28.0.0"
   count         = var.fast_features.project_factory ? 1 : 0
   project_id    = var.automation.project_id
   name          = "prod-resman-pf-0"
