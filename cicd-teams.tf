@@ -19,7 +19,7 @@
 # source repository
 
 module "branch-teams-team-cicd-repo" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v26.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v27.0.0"
   for_each = {
     for k, v in coalesce(local.team_cicd_repositories, {}) : k => v
     if v.cicd.type == "sourcerepo"
@@ -50,7 +50,7 @@ module "branch-teams-team-cicd-repo" {
 # SA used by CI/CD workflows to impersonate automation SAs
 
 module "branch-teams-team-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v26.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v27.0.0"
   for_each = (
     try(local.team_cicd_repositories, null) != null
     ? local.team_cicd_repositories

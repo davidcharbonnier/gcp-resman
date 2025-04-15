@@ -17,7 +17,7 @@
 # tfdoc:file:description Data Platform stages resources.
 
 module "branch-dp-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v26.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v27.0.0"
   count  = var.fast_features.data_platform ? 1 : 0
   parent = "organizations/${var.organization.id}"
   name   = "Data Platform"
@@ -29,7 +29,7 @@ module "branch-dp-folder" {
 }
 
 module "branch-dp-dev-folder" {
-  source    = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v26.0.0"
+  source    = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v27.0.0"
   count     = var.fast_features.data_platform ? 1 : 0
   parent    = module.branch-dp-folder.0.id
   name      = "Development"
@@ -53,7 +53,7 @@ module "branch-dp-dev-folder" {
 }
 
 module "branch-dp-prod-folder" {
-  source    = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v26.0.0"
+  source    = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v27.0.0"
   count     = var.fast_features.data_platform ? 1 : 0
   parent    = module.branch-dp-folder.0.id
   name      = "Production"
@@ -77,7 +77,7 @@ module "branch-dp-prod-folder" {
 # automation service accounts and buckets
 
 module "branch-dp-dev-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v26.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v27.0.0"
   count        = var.fast_features.data_platform ? 1 : 0
   project_id   = var.automation.project_id
   name         = "dev-resman-dp-0"
@@ -94,7 +94,7 @@ module "branch-dp-dev-sa" {
 }
 
 module "branch-dp-prod-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v26.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v27.0.0"
   count        = var.fast_features.data_platform ? 1 : 0
   project_id   = var.automation.project_id
   name         = "prod-resman-dp-0"
@@ -111,7 +111,7 @@ module "branch-dp-prod-sa" {
 }
 
 module "branch-dp-dev-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v26.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v27.0.0"
   count         = var.fast_features.data_platform ? 1 : 0
   project_id    = var.automation.project_id
   name          = "dev-resman-dp-0"
@@ -125,7 +125,7 @@ module "branch-dp-dev-gcs" {
 }
 
 module "branch-dp-prod-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v26.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v27.0.0"
   count         = var.fast_features.data_platform ? 1 : 0
   project_id    = var.automation.project_id
   name          = "prod-resman-dp-0"
@@ -135,24 +135,5 @@ module "branch-dp-prod-gcs" {
   versioning    = true
   iam = {
     "roles/storage.objectAdmin" = [module.branch-dp-prod-sa.0.iam_email]
-  }
-}
-
-resource "google_organization_iam_member" "org_policy_admin_dp" {
-  for_each = !var.fast_features.data_platform ? {} : {
-    data-dev  = ["data", "development", module.branch-dp-dev-sa.0.iam_email]
-    data-prod = ["data", "production", module.branch-dp-prod-sa.0.iam_email]
-  }
-  org_id = var.organization.id
-  role   = "roles/orgpolicy.policyAdmin"
-  member = each.value.2
-  condition {
-    title       = "org_policy_tag_dp_scoped"
-    description = "Org policy tag scoped grant for ${each.value.0}/${each.value.1}."
-    expression  = <<-END
-    resource.matchTag('${var.organization.id}/${var.tag_names.context}', '${each.value.0}')
-    &&
-    resource.matchTag('${var.organization.id}/${var.tag_names.environment}', '${each.value.1}')
-    END
   }
 }
