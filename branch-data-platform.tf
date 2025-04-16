@@ -17,7 +17,7 @@
 # tfdoc:file:description Data Platform stages resources.
 
 module "branch-dp-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v28.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v29.0.0"
   count  = var.fast_features.data_platform ? 1 : 0
   parent = "organizations/${var.organization.id}"
   name   = "Data Platform"
@@ -29,20 +29,25 @@ module "branch-dp-folder" {
 }
 
 module "branch-dp-dev-folder" {
-  source    = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v28.0.0"
+  source    = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v29.0.0"
   count     = var.fast_features.data_platform ? 1 : 0
   parent    = module.branch-dp-folder.0.id
   name      = "Development"
   group_iam = {}
+  # owner and viewer roles are broad and might grant unwanted access
+  # replace them with more selective custom roles for production deployments
   iam = {
+    # read-write (apply) automation service account
     (local.custom_roles.service_project_network_admin) = [
       module.branch-dp-dev-sa.0.iam_email
     ]
-    # remove owner here and at project level if SA does not manage project resources
     "roles/owner"                          = [module.branch-dp-dev-sa.0.iam_email]
     "roles/logging.admin"                  = [module.branch-dp-dev-sa.0.iam_email]
     "roles/resourcemanager.folderAdmin"    = [module.branch-dp-dev-sa.0.iam_email]
     "roles/resourcemanager.projectCreator" = [module.branch-dp-dev-sa.0.iam_email]
+    # read-only (plan) automation service account
+    "roles/viewer"                       = [module.branch-dp-dev-r-sa.0.iam_email]
+    "roles/resourcemanager.folderViewer" = [module.branch-dp-dev-r-sa.0.iam_email]
   }
   tag_bindings = {
     context = try(
@@ -53,18 +58,23 @@ module "branch-dp-dev-folder" {
 }
 
 module "branch-dp-prod-folder" {
-  source    = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v28.0.0"
+  source    = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v29.0.0"
   count     = var.fast_features.data_platform ? 1 : 0
   parent    = module.branch-dp-folder.0.id
   name      = "Production"
   group_iam = {}
+  # owner and viewer roles are broad and might grant unwanted access
+  # replace them with more selective custom roles for production deployments
   iam = {
+    # read-write (apply) automation service account
     (local.custom_roles.service_project_network_admin) = [module.branch-dp-prod-sa.0.iam_email]
-    # remove owner here and at project level if SA does not manage project resources
-    "roles/owner"                          = [module.branch-dp-prod-sa.0.iam_email]
-    "roles/logging.admin"                  = [module.branch-dp-prod-sa.0.iam_email]
-    "roles/resourcemanager.folderAdmin"    = [module.branch-dp-prod-sa.0.iam_email]
-    "roles/resourcemanager.projectCreator" = [module.branch-dp-prod-sa.0.iam_email]
+    "roles/owner"                                      = [module.branch-dp-prod-sa.0.iam_email]
+    "roles/logging.admin"                              = [module.branch-dp-prod-sa.0.iam_email]
+    "roles/resourcemanager.folderAdmin"                = [module.branch-dp-prod-sa.0.iam_email]
+    "roles/resourcemanager.projectCreator"             = [module.branch-dp-prod-sa.0.iam_email]
+    # read-only (plan) automation service account
+    "roles/viewer"                       = [module.branch-dp-prod-r-sa.0.iam_email]
+    "roles/resourcemanager.folderViewer" = [module.branch-dp-prod-r-sa.0.iam_email]
   }
   tag_bindings = {
     context = try(
@@ -74,10 +84,10 @@ module "branch-dp-prod-folder" {
   }
 }
 
-# automation service accounts and buckets
+# automation service accounts
 
 module "branch-dp-dev-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v28.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
   count        = var.fast_features.data_platform ? 1 : 0
   project_id   = var.automation.project_id
   name         = "dev-resman-dp-0"
@@ -97,7 +107,7 @@ module "branch-dp-dev-sa" {
 }
 
 module "branch-dp-prod-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v28.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
   count        = var.fast_features.data_platform ? 1 : 0
   project_id   = var.automation.project_id
   name         = "prod-resman-dp-0"
@@ -108,16 +118,57 @@ module "branch-dp-prod-sa" {
       try(module.branch-dp-prod-sa-cicd.0.iam_email, null)
     ])
   }
-  iam_project_roles = {
-    (var.automation.project_id) = ["roles/serviceusage.serviceUsageConsumer"]
-  }
   iam_storage_roles = {
     (var.automation.outputs_bucket) = ["roles/storage.objectAdmin"]
   }
 }
 
+# automation read-only service accounts
+
+module "branch-dp-dev-r-sa" {
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
+  count        = var.fast_features.data_platform ? 1 : 0
+  project_id   = var.automation.project_id
+  name         = "dev-resman-dp-0r"
+  display_name = "Terraform data platform development service account (read-only)."
+  prefix       = var.prefix
+  iam = {
+    "roles/iam.serviceAccountTokenCreator" = compact([
+      try(module.branch-dp-dev-r-sa-cicd.0.iam_email, null)
+    ])
+  }
+  iam_project_roles = {
+    (var.automation.project_id) = ["roles/serviceusage.serviceUsageConsumer"]
+  }
+  iam_storage_roles = {
+    (var.automation.outputs_bucket) = [var.custom_roles["storage_viewer"]]
+  }
+}
+
+module "branch-dp-prod-r-sa" {
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
+  count        = var.fast_features.data_platform ? 1 : 0
+  project_id   = var.automation.project_id
+  name         = "prod-resman-dp-0r"
+  display_name = "Terraform data platform production service account (read-only)."
+  prefix       = var.prefix
+  iam = {
+    "roles/iam.serviceAccountTokenCreator" = compact([
+      try(module.branch-dp-prod-r-sa-cicd.0.iam_email, null)
+    ])
+  }
+  iam_project_roles = {
+    (var.automation.project_id) = ["roles/serviceusage.serviceUsageConsumer"]
+  }
+  iam_storage_roles = {
+    (var.automation.outputs_bucket) = [var.custom_roles["storage_viewer"]]
+  }
+}
+
+# automation buckets
+
 module "branch-dp-dev-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v28.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v29.0.0"
   count         = var.fast_features.data_platform ? 1 : 0
   project_id    = var.automation.project_id
   name          = "dev-resman-dp-0"
@@ -126,12 +177,13 @@ module "branch-dp-dev-gcs" {
   storage_class = local.gcs_storage_class
   versioning    = true
   iam = {
-    "roles/storage.objectAdmin" = [module.branch-dp-dev-sa.0.iam_email]
+    "roles/storage.objectAdmin"  = [module.branch-dp-dev-sa.0.iam_email]
+    "roles/storage.objectViewer" = [module.branch-dp-dev-r-sa.0.iam_email]
   }
 }
 
 module "branch-dp-prod-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v28.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v29.0.0"
   count         = var.fast_features.data_platform ? 1 : 0
   project_id    = var.automation.project_id
   name          = "prod-resman-dp-0"
@@ -140,6 +192,7 @@ module "branch-dp-prod-gcs" {
   storage_class = local.gcs_storage_class
   versioning    = true
   iam = {
-    "roles/storage.objectAdmin" = [module.branch-dp-prod-sa.0.iam_email]
+    "roles/storage.objectAdmin"  = [module.branch-dp-prod-sa.0.iam_email]
+    "roles/storage.objectViewer" = [module.branch-dp-prod-r-sa.0.iam_email]
   }
 }

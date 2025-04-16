@@ -17,27 +17,25 @@
 # tfdoc:file:description Security stage resources.
 
 module "branch-security-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v28.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v29.0.0"
   parent = "organizations/${var.organization.id}"
   name   = "Security"
   group_iam = local.groups.gcp-security-admins == null ? {} : {
     (local.groups.gcp-security-admins) = [
-      # add any needed roles for resources/services not managed via Terraform,
-      # e.g.
-      # "roles/bigquery.admin",
-      # "roles/cloudasset.owner",
-      # "roles/cloudkms.admin",
-      # "roles/logging.admin",
-      # "roles/secretmanager.admin",
-      # "roles/storage.admin",
-      "roles/viewer"
+      # owner and viewer roles are broad and might grant unwanted access
+      # replace them with more selective custom roles for production deployments
+      "roles/editor"
     ]
   }
   iam = {
+    # read-write (apply) automation service account
     "roles/logging.admin"                  = [module.branch-security-sa.iam_email]
     "roles/owner"                          = [module.branch-security-sa.iam_email]
     "roles/resourcemanager.folderAdmin"    = [module.branch-security-sa.iam_email]
     "roles/resourcemanager.projectCreator" = [module.branch-security-sa.iam_email]
+    # read-only (plan) automation service account
+    "roles/viewer"                       = [module.branch-network-r-sa.iam_email]
+    "roles/resourcemanager.folderViewer" = [module.branch-network-r-sa.iam_email]
   }
   tag_bindings = {
     context = try(
@@ -46,10 +44,10 @@ module "branch-security-folder" {
   }
 }
 
-# automation service account and bucket
+# automation service account
 
 module "branch-security-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v28.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
   project_id   = var.automation.project_id
   name         = "security-0"
   display_name = "Terraform resman security service account."
@@ -67,8 +65,31 @@ module "branch-security-sa" {
   }
 }
 
+# automation read-only service account
+
+module "branch-security-r-sa" {
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
+  project_id   = var.automation.project_id
+  name         = "prod-resman-sec-0r"
+  display_name = "Terraform resman security service account (read-only)."
+  prefix       = var.prefix
+  iam = {
+    "roles/iam.serviceAccountTokenCreator" = compact([
+      try(module.branch-security-r-sa-cicd.0.iam_email, null)
+    ])
+  }
+  iam_project_roles = {
+    (var.automation.project_id) = ["roles/serviceusage.serviceUsageConsumer"]
+  }
+  iam_storage_roles = {
+    (var.automation.outputs_bucket) = [var.custom_roles["storage_viewer"]]
+  }
+}
+
+# automation bucket
+
 module "branch-security-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v28.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v29.0.0"
   project_id    = var.automation.project_id
   name          = "prod-resman-sec-0"
   prefix        = var.prefix
@@ -76,6 +97,7 @@ module "branch-security-gcs" {
   storage_class = local.gcs_storage_class
   versioning    = true
   iam = {
-    "roles/storage.objectAdmin" = [module.branch-security-sa.iam_email]
+    "roles/storage.objectAdmin"  = [module.branch-security-sa.iam_email]
+    "roles/storage.objectViewer" = [module.branch-security-r-sa.iam_email]
   }
 }

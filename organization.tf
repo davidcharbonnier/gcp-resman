@@ -37,7 +37,7 @@ locals {
 }
 
 module "organization" {
-  source          = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/organization?ref=v28.0.0"
+  source          = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/organization?ref=v29.0.0"
   organization_id = "organizations/${var.organization.id}"
   # additive bindings via delegated IAM grant set in stage 0
   iam_bindings_additive = local.iam_bindings_additive
@@ -48,21 +48,21 @@ module "organization" {
       description = "Resource management context."
       iam         = {}
       values = {
-        data       = null
-        gke        = null
-        networking = null
-        sandbox    = null
-        security   = null
-        teams      = null
-        tenant     = null
+        data       = {}
+        gke        = {}
+        networking = {}
+        sandbox    = {}
+        security   = {}
+        teams      = {}
+        tenant     = {}
       }
     }
     (var.tag_names.environment) = {
       description = "Environment definition."
       iam         = {}
       values = {
-        development = null
-        production  = null
+        development = {}
+        production  = {}
       }
     }
     (var.tag_names.tenant) = {
