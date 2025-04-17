@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 locals {
   tenant_iam = {
     for k, v in var.tenants : k => [
-      "group:${v.admin_group_email}",
+      v.admin_principal,
       module.tenant-self-iac-sa[k].iam_email
     ]
   }
@@ -30,7 +30,7 @@ locals {
 # top-level "Tenants" folder
 
 module "tenant-tenants-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v29.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v30.0.0"
   parent = "organizations/${var.organization.id}"
   name   = "Tenants"
   tag_bindings = {
@@ -41,17 +41,17 @@ module "tenant-tenants-folder" {
 # Tenant folders (top, core, self)
 
 module "tenant-top-folder" {
-  source   = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v29.0.0"
+  source   = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v30.0.0"
   for_each = var.tenants
   parent   = module.tenant-tenants-folder.id
   name     = each.value.descriptive_name
-  group_iam = {
-    (each.value.admin_group_email) = ["roles/browser"]
+  iam_by_principals = {
+    (each.value.admin_principal) = ["roles/browser"]
   }
 }
 
 module "tenant-top-folder-iam" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v29.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v30.0.0"
   for_each      = var.tenants
   id            = module.tenant-top-folder[each.key].id
   folder_create = false
@@ -75,14 +75,14 @@ module "tenant-top-folder-iam" {
 }
 
 module "tenant-core-folder" {
-  source   = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v29.0.0"
+  source   = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v30.0.0"
   for_each = var.tenants
   parent   = module.tenant-top-folder[each.key].id
   name     = "${each.value.descriptive_name} - Core"
 }
 
 module "tenant-core-folder-iam" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v29.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v30.0.0"
   for_each      = var.tenants
   id            = module.tenant-core-folder[each.key].id
   folder_create = false
@@ -101,14 +101,14 @@ module "tenant-core-folder-iam" {
 }
 
 module "tenant-self-folder" {
-  source   = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v29.0.0"
+  source   = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v30.0.0"
   for_each = var.tenants
   parent   = module.tenant-top-folder[each.key].id
   name     = "${each.value.descriptive_name} - Tenant"
 }
 
 module "tenant-self-folder-iam" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v29.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v30.0.0"
   for_each      = var.tenants
   id            = module.tenant-self-folder[each.key].id
   folder_create = false
@@ -131,7 +131,7 @@ module "tenant-self-folder-iam" {
 # Tenant IaC resources (core)
 
 module "tenant-core-sa" {
-  source      = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
+  source      = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
   for_each    = var.tenants
   project_id  = var.automation.project_id
   name        = "tn-${each.key}-0"
@@ -143,7 +143,7 @@ module "tenant-core-sa" {
 }
 
 module "tenant-core-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v29.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v30.0.0"
   for_each      = var.tenants
   project_id    = var.automation.project_id
   name          = "tn-${each.key}-0"
@@ -159,7 +159,7 @@ module "tenant-core-gcs" {
 # Tenant IaC project and resources (self)
 
 module "tenant-self-iac-project" {
-  source   = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/project?ref=v29.0.0"
+  source   = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/project?ref=v30.0.0"
   for_each = var.tenants
   billing_account = (
     each.value.billing_account != null
@@ -169,8 +169,8 @@ module "tenant-self-iac-project" {
   name   = "${each.key}-iac-core-0"
   parent = module.tenant-self-folder[each.key].id
   prefix = var.prefix
-  group_iam = {
-    (each.value.admin_group_email) = [
+  iam_by_principals = {
+    (each.value.admin_principal) = [
       "roles/iam.serviceAccountAdmin",
       "roles/iam.serviceAccountTokenCreator",
       "roles/iam.workloadIdentityPoolAdmin"
@@ -213,7 +213,7 @@ module "tenant-self-iac-project" {
 }
 
 module "tenant-self-iac-gcs-outputs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v29.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v30.0.0"
   for_each      = var.tenants
   project_id    = module.tenant-self-iac-project[each.key].project_id
   location      = var.locations.gcs
@@ -227,7 +227,7 @@ module "tenant-self-iac-gcs-outputs" {
 }
 
 module "tenant-self-iac-gcs-state" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v29.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v30.0.0"
   for_each      = var.tenants
   project_id    = module.tenant-self-iac-project[each.key].project_id
   location      = var.locations.gcs
@@ -238,7 +238,7 @@ module "tenant-self-iac-gcs-state" {
 }
 
 module "tenant-self-iac-sa" {
-  source      = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
+  source      = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
   for_each    = var.tenants
   project_id  = module.tenant-self-iac-project[each.key].project_id
   name        = "${each.key}-iac-0"

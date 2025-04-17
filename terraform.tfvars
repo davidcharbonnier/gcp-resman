@@ -27,9 +27,9 @@ cicd_repositories = {
 
 team_folders = {
   infra = {
-    descriptive_name     = "Infra"
-    group_iam            = {}
-    impersonation_groups = []
+    descriptive_name         = "Infra"
+    iam_by_principals        = {}
+    impersonation_principals = []
     cicd = {
       branch            = null
       identity_provider = "github"

@@ -19,7 +19,7 @@
 # automation service accounts
 
 module "branch-pf-dev-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
   count        = var.fast_features.project_factory ? 1 : 0
   project_id   = var.automation.project_id
   name         = "dev-resman-pf-0"
@@ -39,7 +39,7 @@ module "branch-pf-dev-sa" {
 }
 
 module "branch-pf-prod-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
   count        = var.fast_features.project_factory ? 1 : 0
   project_id   = var.automation.project_id
   name         = "prod-resman-pf-0"
@@ -61,7 +61,7 @@ module "branch-pf-prod-sa" {
 # automation read-only service accounts
 
 module "branch-pf-dev-r-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
   count        = var.fast_features.project_factory ? 1 : 0
   project_id   = var.automation.project_id
   name         = "dev-resman-pf-0r"
@@ -81,7 +81,7 @@ module "branch-pf-dev-r-sa" {
 }
 
 module "branch-pf-prod-r-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
   count        = var.fast_features.project_factory ? 1 : 0
   project_id   = var.automation.project_id
   name         = "prod-resman-pf-0r"
@@ -103,7 +103,7 @@ module "branch-pf-prod-r-sa" {
 # automation buckets
 
 module "branch-pf-dev-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v29.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v30.0.0"
   count         = var.fast_features.project_factory ? 1 : 0
   project_id    = var.automation.project_id
   name          = "dev-resman-pf-0"
@@ -118,7 +118,7 @@ module "branch-pf-dev-gcs" {
 }
 
 module "branch-pf-prod-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v29.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v30.0.0"
   count         = var.fast_features.project_factory ? 1 : 0
   project_id    = var.automation.project_id
   name          = "prod-resman-pf-0"

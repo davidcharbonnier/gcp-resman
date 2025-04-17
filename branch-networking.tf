@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@
 # tfdoc:file:description Networking stage resources.
 
 module "branch-network-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v29.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v30.0.0"
   parent = "organizations/${var.organization.id}"
   name   = "Networking"
-  group_iam = local.groups.gcp-network-admins == null ? {} : {
-    (local.groups.gcp-network-admins) = [
+  iam_by_principals = {
+    (local.principals.gcp-network-admins) = [
       # owner and viewer roles are broad and might grant unwanted access
       # replace them with more selective custom roles for production deployments
       "roles/editor",
@@ -46,7 +46,7 @@ module "branch-network-folder" {
 }
 
 module "branch-network-prod-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v29.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v30.0.0"
   parent = module.branch-network-folder.id
   name   = "Production"
   iam = {
@@ -72,7 +72,7 @@ module "branch-network-prod-folder" {
 }
 
 module "branch-network-dev-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v29.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v30.0.0"
   parent = module.branch-network-folder.id
   name   = "Development"
   iam = {
@@ -100,7 +100,7 @@ module "branch-network-dev-folder" {
 # automation service account
 
 module "branch-network-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
   project_id   = var.automation.project_id
   name         = "prod-resman-net-0"
   display_name = "Terraform resman networking service account."
@@ -121,7 +121,7 @@ module "branch-network-sa" {
 # automation read-only service account
 
 module "branch-network-r-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
   project_id   = var.automation.project_id
   name         = "prod-resman-net-0r"
   display_name = "Terraform resman networking service account (read-only)."
@@ -142,7 +142,7 @@ module "branch-network-r-sa" {
 # automation bucket
 
 module "branch-network-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v29.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v30.0.0"
   project_id    = var.automation.project_id
   name          = "prod-resman-net-0"
   prefix        = var.prefix

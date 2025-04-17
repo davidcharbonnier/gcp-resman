@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 # TODO(ludo): add support for CI/CD
 
 module "branch-teams-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v29.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v30.0.0"
   count  = var.fast_features.teams ? 1 : 0
   parent = "organizations/${var.organization.id}"
   name   = "Teams"
@@ -38,7 +38,7 @@ module "branch-teams-folder" {
 }
 
 module "branch-teams-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
   count        = var.fast_features.teams ? 1 : 0
   project_id   = var.automation.project_id
   name         = "prod-resman-teams-0"
@@ -53,7 +53,7 @@ module "branch-teams-sa" {
 }
 
 module "branch-teams-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v29.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v30.0.0"
   count         = var.fast_features.teams ? 1 : 0
   project_id    = var.automation.project_id
   name          = "prod-resman-teams-0"
@@ -68,7 +68,7 @@ module "branch-teams-gcs" {
 
 
 module "branch-teams-team-folder" {
-  source   = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v29.0.0"
+  source   = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v30.0.0"
   for_each = var.fast_features.teams ? coalesce(var.team_folders, {}) : {}
   parent   = module.branch-teams-folder.0.id
   name     = each.value.descriptive_name
@@ -79,13 +79,13 @@ module "branch-teams-team-folder" {
     "roles/resourcemanager.projectCreator" = [module.branch-teams-team-sa[each.key].iam_email]
     "roles/compute.xpnAdmin"               = [module.branch-teams-team-sa[each.key].iam_email]
   }
-  group_iam = each.value.group_iam == null ? {} : each.value.group_iam
+  iam_by_principals = each.value.iam_by_principals == null ? {} : each.value.iam_by_principals
 }
 
 # TODO: move into team's own IaC project
 
 module "branch-teams-team-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
   for_each     = var.fast_features.teams ? coalesce(var.team_folders, {}) : {}
   project_id   = var.automation.project_id
   name         = "prod-teams-${each.key}-0"
@@ -95,16 +95,16 @@ module "branch-teams-team-sa" {
     "roles/iam.serviceAccountTokenCreator" = concat(
       compact([try(module.branch-teams-team-sa-cicd[each.key].iam_email, null)]),
       (
-        each.value.impersonation_groups == null
+        each.value.impersonation_principals == null
         ? []
-        : [for g in each.value.impersonation_groups : "group:${g}"]
+        : [for g in each.value.impersonation_principals : g]
       )
     )
   }
 }
 
 module "branch-teams-team-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v29.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v30.0.0"
   for_each      = var.fast_features.teams ? coalesce(var.team_folders, {}) : {}
   project_id    = var.automation.project_id
   name          = "prod-teams-${each.key}-0"
@@ -120,13 +120,13 @@ module "branch-teams-team-gcs" {
 # per-team environment folders where project factory SAs can create projects
 
 module "branch-teams-team-dev-folder" {
-  source   = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v29.0.0"
+  source   = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v30.0.0"
   for_each = var.fast_features.teams ? coalesce(var.team_folders, {}) : {}
   parent   = module.branch-teams-team-folder[each.key].id
   # naming: environment descriptive name
   name = "Development"
   # environment-wide human permissions on the whole teams environment
-  group_iam = {}
+  iam_by_principals = {}
   iam = {
     (local.custom_roles.service_project_network_admin) = (
       local.branch_optional_sa_lists.pf-dev
@@ -136,6 +136,8 @@ module "branch-teams-team-dev-folder" {
     "roles/logging.admin"                  = local.branch_optional_sa_lists.pf-dev
     "roles/resourcemanager.folderAdmin"    = local.branch_optional_sa_lists.pf-dev
     "roles/resourcemanager.projectCreator" = local.branch_optional_sa_lists.pf-dev
+    "roles/resourcemanager.folderViewer"   = local.branch_optional_r_sa_lists.pf-dev
+    "roles/viewer"                         = local.branch_optional_r_sa_lists.pf-dev
   }
   tag_bindings = {
     environment = try(
@@ -145,13 +147,13 @@ module "branch-teams-team-dev-folder" {
 }
 
 module "branch-teams-team-prod-folder" {
-  source   = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v29.0.0"
+  source   = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v30.0.0"
   for_each = var.fast_features.teams ? coalesce(var.team_folders, {}) : {}
   parent   = module.branch-teams-team-folder[each.key].id
   # naming: environment descriptive name
   name = "Production"
   # environment-wide human permissions on the whole teams environment
-  group_iam = {}
+  iam_by_principals = {}
   iam = {
     (local.custom_roles.service_project_network_admin) = (
       local.branch_optional_sa_lists.pf-prod
@@ -161,6 +163,8 @@ module "branch-teams-team-prod-folder" {
     "roles/logging.admin"                  = local.branch_optional_sa_lists.pf-prod
     "roles/resourcemanager.folderAdmin"    = local.branch_optional_sa_lists.pf-prod
     "roles/resourcemanager.projectCreator" = local.branch_optional_sa_lists.pf-prod
+    "roles/resourcemanager.folderViewer"   = local.branch_optional_r_sa_lists.pf-prod
+    "roles/viewer"                         = local.branch_optional_r_sa_lists.pf-prod
   }
   tag_bindings = {
     environment = try(

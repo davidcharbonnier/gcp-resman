@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 # tfdoc:file:description Data Platform stages resources.
 
 module "branch-dp-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v29.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v30.0.0"
   count  = var.fast_features.data_platform ? 1 : 0
   parent = "organizations/${var.organization.id}"
   name   = "Data Platform"
@@ -29,11 +29,11 @@ module "branch-dp-folder" {
 }
 
 module "branch-dp-dev-folder" {
-  source    = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v29.0.0"
-  count     = var.fast_features.data_platform ? 1 : 0
-  parent    = module.branch-dp-folder.0.id
-  name      = "Development"
-  group_iam = {}
+  source            = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v30.0.0"
+  count             = var.fast_features.data_platform ? 1 : 0
+  parent            = module.branch-dp-folder.0.id
+  name              = "Development"
+  iam_by_principals = {}
   # owner and viewer roles are broad and might grant unwanted access
   # replace them with more selective custom roles for production deployments
   iam = {
@@ -41,8 +41,8 @@ module "branch-dp-dev-folder" {
     (local.custom_roles.service_project_network_admin) = [
       module.branch-dp-dev-sa.0.iam_email
     ]
-    "roles/owner"                          = [module.branch-dp-dev-sa.0.iam_email]
     "roles/logging.admin"                  = [module.branch-dp-dev-sa.0.iam_email]
+    "roles/owner"                          = [module.branch-dp-dev-sa.0.iam_email]
     "roles/resourcemanager.folderAdmin"    = [module.branch-dp-dev-sa.0.iam_email]
     "roles/resourcemanager.projectCreator" = [module.branch-dp-dev-sa.0.iam_email]
     # read-only (plan) automation service account
@@ -58,11 +58,11 @@ module "branch-dp-dev-folder" {
 }
 
 module "branch-dp-prod-folder" {
-  source    = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v29.0.0"
-  count     = var.fast_features.data_platform ? 1 : 0
-  parent    = module.branch-dp-folder.0.id
-  name      = "Production"
-  group_iam = {}
+  source            = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v30.0.0"
+  count             = var.fast_features.data_platform ? 1 : 0
+  parent            = module.branch-dp-folder.0.id
+  name              = "Production"
+  iam_by_principals = {}
   # owner and viewer roles are broad and might grant unwanted access
   # replace them with more selective custom roles for production deployments
   iam = {
@@ -87,7 +87,7 @@ module "branch-dp-prod-folder" {
 # automation service accounts
 
 module "branch-dp-dev-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
   count        = var.fast_features.data_platform ? 1 : 0
   project_id   = var.automation.project_id
   name         = "dev-resman-dp-0"
@@ -107,7 +107,7 @@ module "branch-dp-dev-sa" {
 }
 
 module "branch-dp-prod-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
   count        = var.fast_features.data_platform ? 1 : 0
   project_id   = var.automation.project_id
   name         = "prod-resman-dp-0"
@@ -126,7 +126,7 @@ module "branch-dp-prod-sa" {
 # automation read-only service accounts
 
 module "branch-dp-dev-r-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
   count        = var.fast_features.data_platform ? 1 : 0
   project_id   = var.automation.project_id
   name         = "dev-resman-dp-0r"
@@ -146,7 +146,7 @@ module "branch-dp-dev-r-sa" {
 }
 
 module "branch-dp-prod-r-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
   count        = var.fast_features.data_platform ? 1 : 0
   project_id   = var.automation.project_id
   name         = "prod-resman-dp-0r"
@@ -168,7 +168,7 @@ module "branch-dp-prod-r-sa" {
 # automation buckets
 
 module "branch-dp-dev-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v29.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v30.0.0"
   count         = var.fast_features.data_platform ? 1 : 0
   project_id    = var.automation.project_id
   name          = "dev-resman-dp-0"
@@ -183,7 +183,7 @@ module "branch-dp-dev-gcs" {
 }
 
 module "branch-dp-prod-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v29.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v30.0.0"
   count         = var.fast_features.data_platform ? 1 : 0
   project_id    = var.automation.project_id
   name          = "prod-resman-dp-0"

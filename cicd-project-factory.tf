@@ -19,7 +19,7 @@
 # source repositories
 
 module "branch-pf-dev-cicd-repo" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v29.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v30.0.0"
   for_each = (
     try(local.cicd_repositories.project_factory_dev.type, null) == "sourcerepo"
     ? { 0 = local.cicd_repositories.project_factory_dev }
@@ -51,7 +51,7 @@ module "branch-pf-dev-cicd-repo" {
 }
 
 module "branch-pf-prod-cicd-repo" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v29.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v30.0.0"
   for_each = (
     try(local.cicd_repositories.project_factory_prod.type, null) == "sourcerepo"
     ? { 0 = local.cicd_repositories.project_factory_prod }
@@ -85,7 +85,7 @@ module "branch-pf-prod-cicd-repo" {
 # read-write (apply) SAs used by CI/CD workflows to impersonate automation SAs
 
 module "branch-pf-dev-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
   for_each = (
     try(local.cicd_repositories.project_factory_dev.name, null) != null
     ? { 0 = local.cicd_repositories.project_factory_dev }
@@ -128,7 +128,7 @@ module "branch-pf-dev-sa-cicd" {
 }
 
 module "branch-pf-prod-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
   for_each = (
     try(local.cicd_repositories.project_factory_prod.name, null) != null
     ? { 0 = local.cicd_repositories.project_factory_prod }
@@ -173,7 +173,7 @@ module "branch-pf-prod-sa-cicd" {
 # read-only (plan) SAs used by CI/CD workflows to impersonate automation SAs
 
 module "branch-pf-dev-r-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
   for_each = (
     try(local.cicd_repositories.project_factory_dev.name, null) != null
     ? { 0 = local.cicd_repositories.project_factory_dev }
@@ -207,7 +207,7 @@ module "branch-pf-dev-r-sa-cicd" {
 }
 
 module "branch-pf-prod-r-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
   for_each = (
     try(local.cicd_repositories.project_factory_prod.name, null) != null
     ? { 0 = local.cicd_repositories.project_factory_prod }

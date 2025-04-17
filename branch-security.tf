@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@
 # tfdoc:file:description Security stage resources.
 
 module "branch-security-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v29.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v30.0.0"
   parent = "organizations/${var.organization.id}"
   name   = "Security"
-  group_iam = local.groups.gcp-security-admins == null ? {} : {
-    (local.groups.gcp-security-admins) = [
+  iam_by_principals = {
+    (local.principals.gcp-security-admins) = [
       # owner and viewer roles are broad and might grant unwanted access
       # replace them with more selective custom roles for production deployments
       "roles/editor"
@@ -34,8 +34,8 @@ module "branch-security-folder" {
     "roles/resourcemanager.folderAdmin"    = [module.branch-security-sa.iam_email]
     "roles/resourcemanager.projectCreator" = [module.branch-security-sa.iam_email]
     # read-only (plan) automation service account
-    "roles/viewer"                       = [module.branch-network-r-sa.iam_email]
-    "roles/resourcemanager.folderViewer" = [module.branch-network-r-sa.iam_email]
+    "roles/viewer"                       = [module.branch-security-r-sa.iam_email]
+    "roles/resourcemanager.folderViewer" = [module.branch-security-r-sa.iam_email]
   }
   tag_bindings = {
     context = try(
@@ -47,7 +47,7 @@ module "branch-security-folder" {
 # automation service account
 
 module "branch-security-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
   project_id   = var.automation.project_id
   name         = "security-0"
   display_name = "Terraform resman security service account."
@@ -68,7 +68,7 @@ module "branch-security-sa" {
 # automation read-only service account
 
 module "branch-security-r-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v29.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
   project_id   = var.automation.project_id
   name         = "prod-resman-sec-0r"
   display_name = "Terraform resman security service account (read-only)."
@@ -89,7 +89,7 @@ module "branch-security-r-sa" {
 # automation bucket
 
 module "branch-security-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v29.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v30.0.0"
   project_id    = var.automation.project_id
   name          = "prod-resman-sec-0"
   prefix        = var.prefix
