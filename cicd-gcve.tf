@@ -14,30 +14,34 @@
  * limitations under the License.
  */
 
-# tfdoc:file:description CI/CD resources for the teams branch.
+# tfdoc:file:description CI/CD resources for the GCVE branch.
 
 # source repositories
 
-module "branch-pf-dev-cicd-repo" {
+module "branch-gcve-dev-cicd-repo" {
   source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v31.1.0"
   for_each = (
-    try(local.cicd_repositories.project_factory_dev.type, null) == "sourcerepo"
-    ? { 0 = local.cicd_repositories.project_factory_dev }
+    try(local.cicd_repositories.gcve_dev.type, null) == "sourcerepo"
+    ? { 0 = local.cicd_repositories.gcve_dev }
     : {}
   )
   project_id = var.automation.project_id
   name       = each.value.name
   iam = {
-    "roles/source.admin"  = [module.branch-pf-dev-sa[0].iam_email]
-    "roles/source.reader" = [module.branch-pf-dev-sa-cicd[0].iam_email]
+    "roles/source.admin" = compact([
+      try(module.branch-gcve-dev-sa[0].iam_email, "")
+    ])
+    "roles/source.reader" = compact([
+      try(module.branch-gcve-dev-sa-cicd[0].iam_email, "")
+    ])
   }
   triggers = {
-    fast-03-pf-dev = {
+    fast-03-gcve-dev = {
       filename = ".cloudbuild/workflow.yaml"
       included_files = [
         "**/*json", "**/*tf", "**/*yaml", ".cloudbuild/workflow.yaml"
       ]
-      service_account = module.branch-pf-dev-sa-cicd[0].id
+      service_account = module.branch-gcve-dev-sa-cicd[0].id
       substitutions   = {}
       template = {
         project_id  = null
@@ -47,29 +51,29 @@ module "branch-pf-dev-cicd-repo" {
       }
     }
   }
-  depends_on = [module.branch-pf-dev-sa-cicd]
+  depends_on = [module.branch-gcve-dev-sa-cicd]
 }
 
-module "branch-pf-prod-cicd-repo" {
+module "branch-gcve-prod-cicd-repo" {
   source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v31.1.0"
   for_each = (
-    try(local.cicd_repositories.project_factory_prod.type, null) == "sourcerepo"
-    ? { 0 = local.cicd_repositories.project_factory_prod }
+    try(local.cicd_repositories.gcve_prod.type, null) == "sourcerepo"
+    ? { 0 = local.cicd_repositories.gcve_prod }
     : {}
   )
   project_id = var.automation.project_id
   name       = each.value.name
   iam = {
-    "roles/source.admin"  = [module.branch-pf-prod-sa[0].iam_email]
-    "roles/source.reader" = [module.branch-pf-prod-sa-cicd[0].iam_email]
+    "roles/source.admin"  = [module.branch-gcve-prod-sa[0].iam_email]
+    "roles/source.reader" = [module.branch-gcve-prod-sa-cicd[0].iam_email]
   }
   triggers = {
-    fast-03-pf-prod = {
+    fast-03-gcve-prod = {
       filename = ".cloudbuild/workflow.yaml"
       included_files = [
         "**/*json", "**/*tf", "**/*yaml", ".cloudbuild/workflow.yaml"
       ]
-      service_account = module.branch-pf-prod-sa-cicd[0].id
+      service_account = module.branch-gcve-prod-sa-cicd[0].id
       substitutions   = {}
       template = {
         project_id  = null
@@ -79,21 +83,21 @@ module "branch-pf-prod-cicd-repo" {
       }
     }
   }
-  depends_on = [module.branch-pf-prod-sa-cicd]
+  depends_on = [module.branch-gcve-prod-sa-cicd]
 }
 
 # read-write (apply) SAs used by CI/CD workflows to impersonate automation SAs
 
-module "branch-pf-dev-sa-cicd" {
+module "branch-gcve-dev-sa-cicd" {
   source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v31.1.0"
   for_each = (
-    try(local.cicd_repositories.project_factory_dev.name, null) != null
-    ? { 0 = local.cicd_repositories.project_factory_dev }
+    try(local.cicd_repositories.gcve_dev.name, null) != null
+    ? { 0 = local.cicd_repositories.gcve_dev }
     : {}
   )
   project_id   = var.automation.project_id
-  name         = "dev-pf-resman-pf-1"
-  display_name = "Terraform CI/CD project factory development service account."
+  name         = "dev-resman-gcve-1"
+  display_name = "Terraform CI/CD GCVE development service account."
   prefix       = var.prefix
   iam = (
     each.value.type == "sourcerepo"
@@ -127,16 +131,16 @@ module "branch-pf-dev-sa-cicd" {
   }
 }
 
-module "branch-pf-prod-sa-cicd" {
+module "branch-gcve-prod-sa-cicd" {
   source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v31.1.0"
   for_each = (
-    try(local.cicd_repositories.project_factory_prod.name, null) != null
-    ? { 0 = local.cicd_repositories.project_factory_prod }
+    try(local.cicd_repositories.gcve_prod.name, null) != null
+    ? { 0 = local.cicd_repositories.gcve_prod }
     : {}
   )
   project_id   = var.automation.project_id
-  name         = "prod-pf-resman-pf-1"
-  display_name = "Terraform CI/CD project factory production service account."
+  name         = "prod-resman-gcve-1"
+  display_name = "Terraform CI/CD GCVE production service account."
   prefix       = var.prefix
   iam = (
     each.value.type == "sourcerepo"
@@ -172,16 +176,16 @@ module "branch-pf-prod-sa-cicd" {
 
 # read-only (plan) SAs used by CI/CD workflows to impersonate automation SAs
 
-module "branch-pf-dev-r-sa-cicd" {
+module "branch-gcve-dev-r-sa-cicd" {
   source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v31.1.0"
   for_each = (
-    try(local.cicd_repositories.project_factory_dev.name, null) != null
-    ? { 0 = local.cicd_repositories.project_factory_dev }
+    try(local.cicd_repositories.gcve_dev.name, null) != null
+    ? { 0 = local.cicd_repositories.gcve_dev }
     : {}
   )
   project_id   = var.automation.project_id
-  name         = "dev-resman-pf-1r"
-  display_name = "Terraform CI/CD project factory development service account (read-only)."
+  name         = "dev-resman-gcve-1r"
+  display_name = "Terraform CI/CD GCVE development service account (read-only)."
   prefix       = var.prefix
   iam = (
     each.value.type == "sourcerepo"
@@ -206,16 +210,16 @@ module "branch-pf-dev-r-sa-cicd" {
   }
 }
 
-module "branch-pf-prod-r-sa-cicd" {
+module "branch-gcve-prod-r-sa-cicd" {
   source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v31.1.0"
   for_each = (
-    try(local.cicd_repositories.project_factory_prod.name, null) != null
-    ? { 0 = local.cicd_repositories.project_factory_prod }
+    try(local.cicd_repositories.gcve_prod.name, null) != null
+    ? { 0 = local.cicd_repositories.gcve_prod }
     : {}
   )
   project_id   = var.automation.project_id
-  name         = "prod-resman-pf-1r"
-  display_name = "Terraform CI/CD project factory production service account (read-only)."
+  name         = "prod-resman-gcve-1r"
+  display_name = "Terraform CI/CD GCVE production service account (read-only)."
   prefix       = var.prefix
   iam = (
     each.value.type == "sourcerepo"

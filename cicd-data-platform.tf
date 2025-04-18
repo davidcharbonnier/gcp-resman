@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 # source repositories
 
 module "branch-dp-dev-cicd-repo" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v30.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v31.1.0"
   for_each = (
     try(local.cicd_repositories.data_platform_dev.type, null) == "sourcerepo"
     ? { 0 = local.cicd_repositories.data_platform_dev }
@@ -29,10 +29,10 @@ module "branch-dp-dev-cicd-repo" {
   name       = each.value.name
   iam = {
     "roles/source.admin" = compact([
-      try(module.branch-dp-dev-sa.0.iam_email, "")
+      try(module.branch-dp-dev-sa[0].iam_email, "")
     ])
     "roles/source.reader" = compact([
-      try(module.branch-dp-dev-sa-cicd.0.iam_email, "")
+      try(module.branch-dp-dev-sa-cicd[0].iam_email, "")
     ])
   }
   triggers = {
@@ -41,7 +41,7 @@ module "branch-dp-dev-cicd-repo" {
       included_files = [
         "**/*json", "**/*tf", "**/*yaml", ".cloudbuild/workflow.yaml"
       ]
-      service_account = module.branch-dp-dev-sa-cicd.0.id
+      service_account = module.branch-dp-dev-sa-cicd[0].id
       substitutions   = {}
       template = {
         project_id  = null
@@ -55,7 +55,7 @@ module "branch-dp-dev-cicd-repo" {
 }
 
 module "branch-dp-prod-cicd-repo" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v30.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v31.1.0"
   for_each = (
     try(local.cicd_repositories.data_platform_prod.type, null) == "sourcerepo"
     ? { 0 = local.cicd_repositories.data_platform_prod }
@@ -64,8 +64,8 @@ module "branch-dp-prod-cicd-repo" {
   project_id = var.automation.project_id
   name       = each.value.name
   iam = {
-    "roles/source.admin"  = [module.branch-dp-prod-sa.0.iam_email]
-    "roles/source.reader" = [module.branch-dp-prod-sa-cicd.0.iam_email]
+    "roles/source.admin"  = [module.branch-dp-prod-sa[0].iam_email]
+    "roles/source.reader" = [module.branch-dp-prod-sa-cicd[0].iam_email]
   }
   triggers = {
     fast-03-dp-prod = {
@@ -73,7 +73,7 @@ module "branch-dp-prod-cicd-repo" {
       included_files = [
         "**/*json", "**/*tf", "**/*yaml", ".cloudbuild/workflow.yaml"
       ]
-      service_account = module.branch-dp-prod-sa-cicd.0.id
+      service_account = module.branch-dp-prod-sa-cicd[0].id
       substitutions   = {}
       template = {
         project_id  = null
@@ -89,7 +89,7 @@ module "branch-dp-prod-cicd-repo" {
 # read-write (apply) SAs used by CI/CD workflows to impersonate automation SAs
 
 module "branch-dp-dev-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v31.1.0"
   for_each = (
     try(local.cicd_repositories.data_platform_dev.name, null) != null
     ? { 0 = local.cicd_repositories.data_platform_dev }
@@ -132,7 +132,7 @@ module "branch-dp-dev-sa-cicd" {
 }
 
 module "branch-dp-prod-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v31.1.0"
   for_each = (
     try(local.cicd_repositories.data_platform_prod.name, null) != null
     ? { 0 = local.cicd_repositories.data_platform_prod }
@@ -177,7 +177,7 @@ module "branch-dp-prod-sa-cicd" {
 # read-only (plan) SAs used by CI/CD workflows to impersonate automation SAs
 
 module "branch-dp-dev-r-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v31.1.0"
   for_each = (
     try(local.cicd_repositories.data_platform_dev.name, null) != null
     ? { 0 = local.cicd_repositories.data_platform_dev }
@@ -211,7 +211,7 @@ module "branch-dp-dev-r-sa-cicd" {
 }
 
 module "branch-dp-prod-r-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v31.1.0"
   for_each = (
     try(local.cicd_repositories.data_platform_prod.name, null) != null
     ? { 0 = local.cicd_repositories.data_platform_prod }

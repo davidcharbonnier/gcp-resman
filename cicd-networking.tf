@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 # source repository
 
 module "branch-network-cicd-repo" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v30.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v31.1.0"
   for_each = (
     try(local.cicd_repositories.networking.type, null) == "sourcerepo"
     ? { 0 = local.cicd_repositories.networking }
@@ -29,13 +29,13 @@ module "branch-network-cicd-repo" {
   name       = each.value.name
   iam = {
     "roles/source.admin"  = [module.branch-network-sa.iam_email]
-    "roles/source.reader" = [module.branch-network-sa-cicd.0.iam_email]
+    "roles/source.reader" = [module.branch-network-sa-cicd[0].iam_email]
   }
   triggers = {
     fast-02-networking = {
       filename        = ".cloudbuild/workflow.yaml"
       included_files  = ["**/*tf", ".cloudbuild/workflow.yaml"]
-      service_account = module.branch-network-sa-cicd.0.id
+      service_account = module.branch-network-sa-cicd[0].id
       substitutions   = {}
       template = {
         project_id  = null
@@ -51,7 +51,7 @@ module "branch-network-cicd-repo" {
 # read-write (apply) SA used by CI/CD workflows to impersonate automation SA
 
 module "branch-network-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v31.1.0"
   for_each = (
     try(local.cicd_repositories.networking.name, null) != null
     ? { 0 = local.cicd_repositories.networking }
@@ -96,7 +96,7 @@ module "branch-network-sa-cicd" {
 # read-only (plan) SA used by CI/CD workflows to impersonate automation SA
 
 module "branch-network-r-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v31.1.0"
   for_each = (
     try(local.cicd_repositories.networking.name, null) != null
     ? { 0 = local.cicd_repositories.networking }

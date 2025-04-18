@@ -16,8 +16,30 @@
 
 # tfdoc:file:description Security stage resources.
 
+locals {
+  # FAST-specific IAM
+  _security_folder_fast_iam = {
+    "roles/logging.admin"                  = [module.branch-security-sa.iam_email]
+    "roles/owner"                          = [module.branch-security-sa.iam_email]
+    "roles/resourcemanager.folderAdmin"    = [module.branch-security-sa.iam_email]
+    "roles/resourcemanager.projectCreator" = [module.branch-security-sa.iam_email]
+    # read-only (plan) automation service account
+    "roles/viewer"                       = [module.branch-security-r-sa.iam_email]
+    "roles/resourcemanager.folderViewer" = [module.branch-security-r-sa.iam_email]
+  }
+
+  # deep-merge FAST-specific IAM with user-provided bindings in var.folder_iam
+  _security_folder_iam = merge(
+    var.folder_iam.security,
+    {
+      for role, principals in local._security_folder_fast_iam :
+      role => distinct(concat(principals, lookup(var.folder_iam.security, role, [])))
+    }
+  )
+}
+
 module "branch-security-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v30.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v31.1.0"
   parent = "organizations/${var.organization.id}"
   name   = "Security"
   iam_by_principals = {
@@ -27,16 +49,7 @@ module "branch-security-folder" {
       "roles/editor"
     ]
   }
-  iam = {
-    # read-write (apply) automation service account
-    "roles/logging.admin"                  = [module.branch-security-sa.iam_email]
-    "roles/owner"                          = [module.branch-security-sa.iam_email]
-    "roles/resourcemanager.folderAdmin"    = [module.branch-security-sa.iam_email]
-    "roles/resourcemanager.projectCreator" = [module.branch-security-sa.iam_email]
-    # read-only (plan) automation service account
-    "roles/viewer"                       = [module.branch-security-r-sa.iam_email]
-    "roles/resourcemanager.folderViewer" = [module.branch-security-r-sa.iam_email]
-  }
+  iam = local._security_folder_iam
   tag_bindings = {
     context = try(
       module.organization.tag_values["${var.tag_names.context}/security"].id, null
@@ -47,14 +60,14 @@ module "branch-security-folder" {
 # automation service account
 
 module "branch-security-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v31.1.0"
   project_id   = var.automation.project_id
   name         = "security-0"
   display_name = "Terraform resman security service account."
   prefix       = var.prefix
   iam = {
     "roles/iam.serviceAccountTokenCreator" = compact([
-      try(module.branch-security-sa-cicd.0.iam_email, null)
+      try(module.branch-security-sa-cicd[0].iam_email, null)
     ])
   }
   iam_project_roles = {
@@ -68,14 +81,14 @@ module "branch-security-sa" {
 # automation read-only service account
 
 module "branch-security-r-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v30.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v31.1.0"
   project_id   = var.automation.project_id
   name         = "prod-resman-sec-0r"
   display_name = "Terraform resman security service account (read-only)."
   prefix       = var.prefix
   iam = {
     "roles/iam.serviceAccountTokenCreator" = compact([
-      try(module.branch-security-r-sa-cicd.0.iam_email, null)
+      try(module.branch-security-r-sa-cicd[0].iam_email, null)
     ])
   }
   iam_project_roles = {
@@ -89,7 +102,7 @@ module "branch-security-r-sa" {
 # automation bucket
 
 module "branch-security-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v30.0.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v31.1.0"
   project_id    = var.automation.project_id
   name          = "prod-resman-sec-0"
   prefix        = var.prefix
