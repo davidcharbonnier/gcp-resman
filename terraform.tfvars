@@ -25,16 +25,25 @@ cicd_repositories = {
   }
 }
 
-team_folders = {
-  infra = {
-    descriptive_name         = "Infra"
-    iam_by_principals        = {}
-    impersonation_principals = []
-    cicd = {
-      branch            = null
-      identity_provider = "github"
-      name              = "davidcharbonnier/gcp-team-infra"
-      type              = "github"
-    }
-  }
+#team_folders = {
+#  infra = {
+#    descriptive_name         = "Infra"
+#    iam_by_principals        = {}
+#    impersonation_principals = []
+#    cicd = {
+#      branch            = null
+#      identity_provider = "github"
+#      name              = "davidcharbonnier/gcp-team-infra"
+#      type              = "github"
+#    }
+#  }
+#}
+
+#factories_config = {
+#  top_level_folders = "data/top-level-folders"
+#}
+
+fast_features = {
+  project_factory = true
+  sandbox         = true
 }

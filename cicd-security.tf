@@ -16,42 +16,10 @@
 
 # tfdoc:file:description CI/CD resources for the security branch.
 
-# source repository
-
-module "branch-security-cicd-repo" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v31.1.0"
-  for_each = (
-    try(local.cicd_repositories.security.type, null) == "sourcerepo"
-    ? { 0 = local.cicd_repositories.security }
-    : {}
-  )
-  project_id = var.automation.project_id
-  name       = each.value.name
-  iam = {
-    "roles/source.admin"  = [module.branch-security-sa.iam_email]
-    "roles/source.reader" = [module.branch-security-sa-cicd[0].iam_email]
-  }
-  triggers = {
-    fast-02-security = {
-      filename        = ".cloudbuild/workflow.yaml"
-      included_files  = ["**/*tf", ".cloudbuild/workflow.yaml"]
-      service_account = module.branch-security-sa-cicd[0].id
-      substitutions   = {}
-      template = {
-        project_id  = null
-        branch_name = each.value.branch
-        repo_name   = each.value.name
-        tag_name    = null
-      }
-    }
-  }
-  depends_on = [module.branch-security-sa-cicd]
-}
-
 # read-write (apply) SA used by CI/CD workflows to impersonate automation SA
 
 module "branch-security-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v31.1.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v32.0.1"
   for_each = (
     try(local.cicd_repositories.security.name, null) != null
     ? { 0 = local.cicd_repositories.security }
@@ -61,30 +29,22 @@ module "branch-security-sa-cicd" {
   name         = "prod-resman-sec-1"
   display_name = "Terraform CI/CD stage 2 security service account."
   prefix       = var.prefix
-  iam = (
-    each.value.type == "sourcerepo"
-    # used directly from the cloud build trigger for source repos
-    ? {
-      "roles/iam.serviceAccountUser" = local.automation_resman_sa_iam
-    }
-    # impersonated via workload identity federation for external repos
-    : {
-      "roles/iam.workloadIdentityUser" = [
-        each.value.branch == null
-        ? format(
-          local.identity_providers[each.value.identity_provider].principal_repo,
-          var.automation.federated_identity_pool,
-          each.value.name
-        )
-        : format(
-          local.identity_providers[each.value.identity_provider].principal_branch,
-          var.automation.federated_identity_pool,
-          each.value.name,
-          each.value.branch
-        )
-      ]
-    }
-  )
+  iam = {
+    "roles/iam.workloadIdentityUser" = [
+      each.value.branch == null
+      ? format(
+        local.identity_providers[each.value.identity_provider].principal_repo,
+        var.automation.federated_identity_pool,
+        each.value.name
+      )
+      : format(
+        local.identity_providers[each.value.identity_provider].principal_branch,
+        var.automation.federated_identity_pool,
+        each.value.name,
+        each.value.branch
+      )
+    ]
+  }
   iam_project_roles = {
     (var.automation.project_id) = ["roles/logging.logWriter"]
   }
@@ -96,7 +56,7 @@ module "branch-security-sa-cicd" {
 # read-only (plan) SA used by CI/CD workflows to impersonate automation SA
 
 module "branch-security-r-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v31.1.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v32.0.1"
   for_each = (
     try(local.cicd_repositories.security.name, null) != null
     ? { 0 = local.cicd_repositories.security }
@@ -106,21 +66,15 @@ module "branch-security-r-sa-cicd" {
   name         = "prod-resman-sec-1r"
   display_name = "Terraform CI/CD stage 2 security service account (read-only)."
   prefix       = var.prefix
-  iam = (
-    each.value.type == "sourcerepo"
-    # build trigger for read-only SA is optionally defined by users
-    ? {}
-    # impersonated via workload identity federation for external repos
-    : {
-      "roles/iam.workloadIdentityUser" = [
-        format(
-          local.identity_providers[each.value.identity_provider].principal_repo,
-          var.automation.federated_identity_pool,
-          each.value.name
-        )
-      ]
-    }
-  )
+  iam = {
+    "roles/iam.workloadIdentityUser" = [
+      format(
+        local.identity_providers[each.value.identity_provider].principal_repo,
+        var.automation.federated_identity_pool,
+        each.value.name
+      )
+    ]
+  }
   iam_project_roles = {
     (var.automation.project_id) = ["roles/logging.logWriter"]
   }

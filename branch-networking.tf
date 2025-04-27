@@ -40,8 +40,8 @@ locals {
 }
 
 module "branch-network-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v31.1.0"
-  parent = "organizations/${var.organization.id}"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v32.0.1"
+  parent = local.root_node
   name   = "Networking"
   iam_by_principals = {
     (local.principals.gcp-network-admins) = [
@@ -53,13 +53,13 @@ module "branch-network-folder" {
   iam = local._network_folder_iam
   tag_bindings = {
     context = try(
-      module.organization.tag_values["${var.tag_names.context}/networking"].id, null
+      local.tag_values["${var.tag_names.context}/networking"].id, null
     )
   }
 }
 
 module "branch-network-prod-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v31.1.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v32.0.1"
   parent = module.branch-network-folder.id
   name   = "Production"
   iam = {
@@ -68,6 +68,7 @@ module "branch-network-prod-folder" {
       local.branch_optional_sa_lists.dp-prod,
       local.branch_optional_sa_lists.gke-prod,
       local.branch_optional_sa_lists.gcve-prod,
+      local.branch_optional_sa_lists.pf,
       local.branch_optional_sa_lists.pf-prod,
     )
     # read-only (plan) automation service accounts
@@ -75,20 +76,21 @@ module "branch-network-prod-folder" {
       local.branch_optional_r_sa_lists.dp-prod,
       local.branch_optional_r_sa_lists.gke-prod,
       local.branch_optional_r_sa_lists.gcve-prod,
+      local.branch_optional_r_sa_lists.pf,
       local.branch_optional_r_sa_lists.pf-prod,
     )
     (local.custom_roles.gcve_network_admin) = local.branch_optional_sa_lists.gcve-prod
   }
   tag_bindings = {
     environment = try(
-      module.organization.tag_values["${var.tag_names.environment}/production"].id,
+      local.tag_values["${var.tag_names.environment}/production"].id,
       null
     )
   }
 }
 
 module "branch-network-dev-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v31.1.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v32.0.1"
   parent = module.branch-network-folder.id
   name   = "Development"
   iam = {
@@ -97,6 +99,7 @@ module "branch-network-dev-folder" {
       local.branch_optional_sa_lists.dp-dev,
       local.branch_optional_sa_lists.gke-dev,
       local.branch_optional_sa_lists.gcve-dev,
+      local.branch_optional_sa_lists.pf,
       local.branch_optional_sa_lists.pf-dev,
     )
     # read-only (plan) automation service accounts
@@ -104,13 +107,14 @@ module "branch-network-dev-folder" {
       local.branch_optional_r_sa_lists.dp-dev,
       local.branch_optional_r_sa_lists.gke-dev,
       local.branch_optional_r_sa_lists.gcve-dev,
+      local.branch_optional_r_sa_lists.pf,
       local.branch_optional_r_sa_lists.pf-dev,
     )
     (local.custom_roles.gcve_network_admin) = local.branch_optional_sa_lists.gcve-dev
   }
   tag_bindings = {
     environment = try(
-      module.organization.tag_values["${var.tag_names.environment}/development"].id,
+      local.tag_values["${var.tag_names.environment}/development"].id,
       null
     )
   }
@@ -119,11 +123,12 @@ module "branch-network-dev-folder" {
 # automation service account
 
 module "branch-network-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v31.1.0"
-  project_id   = var.automation.project_id
-  name         = "prod-resman-net-0"
-  display_name = "Terraform resman networking service account."
-  prefix       = var.prefix
+  source                 = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v32.0.1"
+  project_id             = var.automation.project_id
+  name                   = "prod-resman-net-0"
+  display_name           = "Terraform resman networking service account."
+  prefix                 = var.prefix
+  service_account_create = var.root_node == null
   iam = {
     "roles/iam.serviceAccountTokenCreator" = compact([
       try(module.branch-network-sa-cicd[0].iam_email, null)
@@ -140,7 +145,7 @@ module "branch-network-sa" {
 # automation read-only service account
 
 module "branch-network-r-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v31.1.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v32.0.1"
   project_id   = var.automation.project_id
   name         = "prod-resman-net-0r"
   display_name = "Terraform resman networking service account (read-only)."
@@ -161,7 +166,7 @@ module "branch-network-r-sa" {
 # automation bucket
 
 module "branch-network-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v31.1.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v32.0.1"
   project_id    = var.automation.project_id
   name          = "prod-resman-net-0"
   prefix        = var.prefix

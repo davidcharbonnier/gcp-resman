@@ -17,20 +17,20 @@
 # tfdoc:file:description GCVE stage resources.
 
 module "branch-gcve-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v31.1.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v32.0.1"
   count  = var.fast_features.gcve ? 1 : 0
-  parent = "organizations/${var.organization.id}"
+  parent = local.root_node
   name   = "GCVE"
   iam    = var.folder_iam.gcve
   tag_bindings = {
     context = try(
-      module.organization.tag_values["${var.tag_names.context}/gcve"].id, null
+      local.tag_values["${var.tag_names.context}/gcve"].id, null
     )
   }
 }
 
 module "branch-gcve-dev-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v31.1.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v32.0.1"
   count  = var.fast_features.gcve ? 1 : 0
   parent = module.branch-gcve-folder[0].id
   name   = "Development"
@@ -47,14 +47,14 @@ module "branch-gcve-dev-folder" {
   }
   tag_bindings = {
     context = try(
-      module.organization.tag_values["${var.tag_names.environment}/development"].id,
+      local.tag_values["${var.tag_names.environment}/development"].id,
       null
     )
   }
 }
 
 module "branch-gcve-prod-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v31.1.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v32.0.1"
   count  = var.fast_features.gcve ? 1 : 0
   parent = module.branch-gcve-folder[0].id
   name   = "Production"
@@ -71,7 +71,7 @@ module "branch-gcve-prod-folder" {
   }
   tag_bindings = {
     context = try(
-      module.organization.tag_values["${var.tag_names.environment}/production"].id,
+      local.tag_values["${var.tag_names.environment}/production"].id,
       null
     )
   }
@@ -80,7 +80,7 @@ module "branch-gcve-prod-folder" {
 # automation service accounts
 
 module "branch-gcve-dev-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v31.1.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v32.0.1"
   count        = var.fast_features.gcve ? 1 : 0
   project_id   = var.automation.project_id
   name         = "dev-resman-gcve-0"
@@ -103,7 +103,7 @@ module "branch-gcve-dev-sa" {
 }
 
 module "branch-gcve-prod-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v31.1.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v32.0.1"
   count        = var.fast_features.gcve ? 1 : 0
   project_id   = var.automation.project_id
   name         = "prod-resman-gcve-0"
@@ -128,7 +128,7 @@ module "branch-gcve-prod-sa" {
 # automation read-only service accounts
 
 module "branch-gcve-dev-r-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v31.1.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v32.0.1"
   count        = var.fast_features.gcve ? 1 : 0
   project_id   = var.automation.project_id
   name         = "dev-resman-gcve-0r"
@@ -148,7 +148,7 @@ module "branch-gcve-dev-r-sa" {
 }
 
 module "branch-gcve-prod-r-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v31.1.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v32.0.1"
   count        = var.fast_features.gcve ? 1 : 0
   project_id   = var.automation.project_id
   name         = "prod-resman-gcve-0r"
@@ -170,7 +170,7 @@ module "branch-gcve-prod-r-sa" {
 # automation buckets
 
 module "branch-gcve-dev-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v31.1.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v32.0.1"
   count         = var.fast_features.gcve ? 1 : 0
   project_id    = var.automation.project_id
   name          = "dev-resman-gcve-0"
@@ -185,7 +185,7 @@ module "branch-gcve-dev-gcs" {
 }
 
 module "branch-gcve-prod-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v31.1.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v32.0.1"
   count         = var.fast_features.gcve ? 1 : 0
   project_id    = var.automation.project_id
   name          = "prod-resman-gcve-0"

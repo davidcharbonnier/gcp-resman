@@ -16,80 +16,10 @@
 
 # tfdoc:file:description CI/CD resources for the data platform branch.
 
-# source repositories
-
-module "branch-dp-dev-cicd-repo" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v31.1.0"
-  for_each = (
-    try(local.cicd_repositories.data_platform_dev.type, null) == "sourcerepo"
-    ? { 0 = local.cicd_repositories.data_platform_dev }
-    : {}
-  )
-  project_id = var.automation.project_id
-  name       = each.value.name
-  iam = {
-    "roles/source.admin" = compact([
-      try(module.branch-dp-dev-sa[0].iam_email, "")
-    ])
-    "roles/source.reader" = compact([
-      try(module.branch-dp-dev-sa-cicd[0].iam_email, "")
-    ])
-  }
-  triggers = {
-    fast-03-dp-dev = {
-      filename = ".cloudbuild/workflow.yaml"
-      included_files = [
-        "**/*json", "**/*tf", "**/*yaml", ".cloudbuild/workflow.yaml"
-      ]
-      service_account = module.branch-dp-dev-sa-cicd[0].id
-      substitutions   = {}
-      template = {
-        project_id  = null
-        branch_name = each.value.branch
-        repo_name   = each.value.name
-        tag_name    = null
-      }
-    }
-  }
-  depends_on = [module.branch-dp-dev-sa-cicd]
-}
-
-module "branch-dp-prod-cicd-repo" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/source-repository?ref=v31.1.0"
-  for_each = (
-    try(local.cicd_repositories.data_platform_prod.type, null) == "sourcerepo"
-    ? { 0 = local.cicd_repositories.data_platform_prod }
-    : {}
-  )
-  project_id = var.automation.project_id
-  name       = each.value.name
-  iam = {
-    "roles/source.admin"  = [module.branch-dp-prod-sa[0].iam_email]
-    "roles/source.reader" = [module.branch-dp-prod-sa-cicd[0].iam_email]
-  }
-  triggers = {
-    fast-03-dp-prod = {
-      filename = ".cloudbuild/workflow.yaml"
-      included_files = [
-        "**/*json", "**/*tf", "**/*yaml", ".cloudbuild/workflow.yaml"
-      ]
-      service_account = module.branch-dp-prod-sa-cicd[0].id
-      substitutions   = {}
-      template = {
-        project_id  = null
-        branch_name = each.value.branch
-        repo_name   = each.value.name
-        tag_name    = null
-      }
-    }
-  }
-  depends_on = [module.branch-dp-prod-sa-cicd]
-}
-
 # read-write (apply) SAs used by CI/CD workflows to impersonate automation SAs
 
 module "branch-dp-dev-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v31.1.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v32.0.1"
   for_each = (
     try(local.cicd_repositories.data_platform_dev.name, null) != null
     ? { 0 = local.cicd_repositories.data_platform_dev }
@@ -99,30 +29,22 @@ module "branch-dp-dev-sa-cicd" {
   name         = "dev-resman-dp-1"
   display_name = "Terraform CI/CD data platform development service account."
   prefix       = var.prefix
-  iam = (
-    each.value.type == "sourcerepo"
-    # used directly from the cloud build trigger for source repos
-    ? {
-      "roles/iam.serviceAccountUser" = local.automation_resman_sa_iam
-    }
-    # impersonated via workload identity federation for external repos
-    : {
-      "roles/iam.workloadIdentityUser" = [
-        each.value.branch == null
-        ? format(
-          local.identity_providers[each.value.identity_provider].principal_repo,
-          var.automation.federated_identity_pool,
-          each.value.name
-        )
-        : format(
-          local.identity_providers[each.value.identity_provider].principal_branch,
-          var.automation.federated_identity_pool,
-          each.value.name,
-          each.value.branch
-        )
-      ]
-    }
-  )
+  iam = {
+    "roles/iam.workloadIdentityUser" = [
+      each.value.branch == null
+      ? format(
+        local.identity_providers[each.value.identity_provider].principal_repo,
+        var.automation.federated_identity_pool,
+        each.value.name
+      )
+      : format(
+        local.identity_providers[each.value.identity_provider].principal_branch,
+        var.automation.federated_identity_pool,
+        each.value.name,
+        each.value.branch
+      )
+    ]
+  }
   iam_project_roles = {
     (var.automation.project_id) = ["roles/logging.logWriter"]
   }
@@ -132,7 +54,7 @@ module "branch-dp-dev-sa-cicd" {
 }
 
 module "branch-dp-prod-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v31.1.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v32.0.1"
   for_each = (
     try(local.cicd_repositories.data_platform_prod.name, null) != null
     ? { 0 = local.cicd_repositories.data_platform_prod }
@@ -142,30 +64,22 @@ module "branch-dp-prod-sa-cicd" {
   name         = "prod-resman-dp-1"
   display_name = "Terraform CI/CD data platform production service account."
   prefix       = var.prefix
-  iam = (
-    each.value.type == "sourcerepo"
-    # used directly from the cloud build trigger for source repos
-    ? {
-      "roles/iam.serviceAccountUser" = local.automation_resman_sa_iam
-    }
-    # impersonated via workload identity federation for external repos
-    : {
-      "roles/iam.workloadIdentityUser" = [
-        each.value.branch == null
-        ? format(
-          local.identity_providers[each.value.identity_provider].principal_repo,
-          var.automation.federated_identity_pool,
-          each.value.name
-        )
-        : format(
-          local.identity_providers[each.value.identity_provider].principal_branch,
-          var.automation.federated_identity_pool,
-          each.value.name,
-          each.value.branch
-        )
-      ]
-    }
-  )
+  iam = {
+    "roles/iam.workloadIdentityUser" = [
+      each.value.branch == null
+      ? format(
+        local.identity_providers[each.value.identity_provider].principal_repo,
+        var.automation.federated_identity_pool,
+        each.value.name
+      )
+      : format(
+        local.identity_providers[each.value.identity_provider].principal_branch,
+        var.automation.federated_identity_pool,
+        each.value.name,
+        each.value.branch
+      )
+    ]
+  }
   iam_project_roles = {
     (var.automation.project_id) = ["roles/logging.logWriter"]
   }
@@ -177,7 +91,7 @@ module "branch-dp-prod-sa-cicd" {
 # read-only (plan) SAs used by CI/CD workflows to impersonate automation SAs
 
 module "branch-dp-dev-r-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v31.1.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v32.0.1"
   for_each = (
     try(local.cicd_repositories.data_platform_dev.name, null) != null
     ? { 0 = local.cicd_repositories.data_platform_dev }
@@ -187,21 +101,15 @@ module "branch-dp-dev-r-sa-cicd" {
   name         = "dev-resman-dp-1r"
   display_name = "Terraform CI/CD data platform development service account (read-only)."
   prefix       = var.prefix
-  iam = (
-    each.value.type == "sourcerepo"
-    # build trigger for read-only SA is optionally defined by users
-    ? {}
-    # impersonated via workload identity federation for external repos
-    : {
-      "roles/iam.workloadIdentityUser" = [
-        format(
-          local.identity_providers[each.value.identity_provider].principal_repo,
-          var.automation.federated_identity_pool,
-          each.value.name
-        )
-      ]
-    }
-  )
+  iam = {
+    "roles/iam.workloadIdentityUser" = [
+      format(
+        local.identity_providers[each.value.identity_provider].principal_repo,
+        var.automation.federated_identity_pool,
+        each.value.name
+      )
+    ]
+  }
   iam_project_roles = {
     (var.automation.project_id) = ["roles/logging.logWriter"]
   }
@@ -211,7 +119,7 @@ module "branch-dp-dev-r-sa-cicd" {
 }
 
 module "branch-dp-prod-r-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v31.1.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v32.0.1"
   for_each = (
     try(local.cicd_repositories.data_platform_prod.name, null) != null
     ? { 0 = local.cicd_repositories.data_platform_prod }
@@ -221,21 +129,15 @@ module "branch-dp-prod-r-sa-cicd" {
   name         = "prod-resman-dp-1r"
   display_name = "Terraform CI/CD data platform production service account (read-only)."
   prefix       = var.prefix
-  iam = (
-    each.value.type == "sourcerepo"
-    # build trigger for read-only SA is optionally defined by users
-    ? {}
-    # impersonated via workload identity federation for external repos
-    : {
-      "roles/iam.workloadIdentityUser" = [
-        format(
-          local.identity_providers[each.value.identity_provider].principal_repo,
-          var.automation.federated_identity_pool,
-          each.value.name
-        )
-      ]
-    }
-  )
+  iam = {
+    "roles/iam.workloadIdentityUser" = [
+      format(
+        local.identity_providers[each.value.identity_provider].principal_repo,
+        var.automation.federated_identity_pool,
+        each.value.name
+      )
+    ]
+  }
   iam_project_roles = {
     (var.automation.project_id) = ["roles/logging.logWriter"]
   }

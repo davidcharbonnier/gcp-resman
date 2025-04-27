@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-# tfdoc:file:description Organization-level IAM bindings locals.
+# tfdoc:file:description Organization or root node-level IAM bindings.
 
 locals {
   iam_bindings_additive = merge(
@@ -72,6 +72,14 @@ locals {
     },
     # optional billing roles for project factory
     local.billing_mode != "org" || !var.fast_features.project_factory ? {} : {
+      sa_pf_billing = {
+        member = module.branch-pf-sa[0].iam_email
+        role   = "roles/billing.user"
+      }
+      sa_pf_costs_manager = {
+        member = module.branch-pf-sa[0].iam_email
+        role   = "roles/billing.costsManager"
+      }
       sa_pf_dev_billing = {
         member = module.branch-pf-dev-sa[0].iam_email
         role   = "roles/billing.user"
@@ -90,7 +98,19 @@ locals {
       }
     },
     # scoped org policy admin grants for project factory
-    !var.fast_features.project_factory ? {} : {
+    # TODO: change to use context and environment tags, and tag bindings in stage 2s
+    !var.fast_features.project_factory || var.root_node != null ? {} : {
+      sa_pf_conditional_org_policy = {
+        member = module.branch-pf-sa[0].iam_email
+        role   = "roles/orgpolicy.policyAdmin"
+        condition = {
+          title       = "org_policy_tag_pf_scoped"
+          description = "Org policy tag scoped grant for project factory main."
+          expression  = <<-END
+            resource.matchTag('${local.tag_root}/${var.tag_names.context}', 'project-factory')
+          END
+        }
+      }
       sa_pf_dev_conditional_org_policy = {
         member = module.branch-pf-dev-sa[0].iam_email
         role   = "roles/orgpolicy.policyAdmin"
@@ -98,9 +118,7 @@ locals {
           title       = "org_policy_tag_pf_scoped_dev"
           description = "Org policy tag scoped grant for project factory dev."
           expression  = <<-END
-            resource.matchTag('${var.organization.id}/${var.tag_names.context}', 'teams')
-            &&
-            resource.matchTag('${var.organization.id}/${var.tag_names.environment}', 'development')
+            resource.matchTag('${local.tag_root}/${var.tag_names.environment}', 'development')
           END
         }
       }
@@ -111,34 +129,9 @@ locals {
           title       = "org_policy_tag_pf_scoped_prod"
           description = "Org policy tag scoped grant for project factory prod."
           expression  = <<-END
-            resource.matchTag('${var.organization.id}/${var.tag_names.context}', 'teams')
+            resource.matchTag('${local.tag_root}/${var.tag_names.environment}', 'production')
           END
         }
-      }
-    },
-    # lightweight tenant roles
-    {
-      for k, v in var.tenants : "oslogin_ext_user-tenant_${k}" => {
-        member = "domain:${v.organization.domain}"
-        role   = "roles/compute.osLoginExternalUser"
-      } if v.organization != null
-    },
-    {
-      for k, v in var.tenants : "org-viewer-tenant_${k}_domain" => {
-        member = "domain:${v.organization.domain}"
-        role   = "roles/resourcemanager.organizationViewer"
-      } if v.organization != null
-    },
-    {
-      for k, v in var.tenants : "org-viewer-tenant_${k}_admin" => {
-        member = v.admin_principal
-        role   = "roles/resourcemanager.organizationViewer"
-      }
-    },
-    local.billing_mode != "org" ? {} : {
-      for k, v in var.tenants : "billing_user-tenant_${k}_billing_admin" => {
-        member = v.admin_principal
-        role   = "roles/billing.user"
       }
     },
   )
