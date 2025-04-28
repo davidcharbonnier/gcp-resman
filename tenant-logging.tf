@@ -69,7 +69,7 @@ locals {
 # one log export per type, with conditionals to skip those not needed
 
 module "log-export-dataset" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/bigquery-dataset?ref=v32.0.1"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/bigquery-dataset?ref=v33.0.0"
   count = (
     var.root_node != null && contains(local.log_types, "bigquery") ? 1 : 0
   )
@@ -80,7 +80,7 @@ module "log-export-dataset" {
 }
 
 module "log-export-gcs" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v32.0.1"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v33.0.0"
   count = (
     var.root_node != null && contains(local.log_types, "storage") ? 1 : 0
   )
@@ -92,7 +92,7 @@ module "log-export-gcs" {
 }
 
 module "log-export-logbucket" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/logging-bucket?ref=v32.0.1"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/logging-bucket?ref=v33.0.0"
   for_each = toset(var.root_node == null ? [] : [
     for k, v in local.log_sinks : k if v.type == "logging"
   ])
@@ -104,7 +104,7 @@ module "log-export-logbucket" {
 }
 
 module "log-export-pubsub" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/pubsub?ref=v32.0.1"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/pubsub?ref=v33.0.0"
   for_each = toset(var.root_node == null ? [] : [
     for k, v in local.log_sinks : k if v.type == "pubsub"
   ])

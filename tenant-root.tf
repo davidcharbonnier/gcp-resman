@@ -15,7 +15,7 @@
  */
 
 module "root-folder" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v32.0.1"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v33.0.0"
   count         = var.root_node != null ? 1 : 0
   id            = var.root_node
   folder_create = false
@@ -32,7 +32,7 @@ module "root-folder" {
 }
 
 module "automation-project" {
-  source         = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/project?ref=v32.0.1"
+  source         = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/project?ref=v33.0.0"
   count          = var.root_node != null ? 1 : 0
   name           = var.automation.project_id
   project_create = false

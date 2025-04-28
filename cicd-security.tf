@@ -19,7 +19,7 @@
 # read-write (apply) SA used by CI/CD workflows to impersonate automation SA
 
 module "branch-security-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v32.0.1"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v33.0.0"
   for_each = (
     try(local.cicd_repositories.security.name, null) != null
     ? { 0 = local.cicd_repositories.security }
@@ -56,7 +56,7 @@ module "branch-security-sa-cicd" {
 # read-only (plan) SA used by CI/CD workflows to impersonate automation SA
 
 module "branch-security-r-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v32.0.1"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v33.0.0"
   for_each = (
     try(local.cicd_repositories.security.name, null) != null
     ? { 0 = local.cicd_repositories.security }

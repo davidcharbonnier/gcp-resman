@@ -16,18 +16,19 @@
 
 # tfdoc:file:description CI/CD resources for the networking branch.
 
-# read-write (apply) SA used by CI/CD workflows to impersonate automation SA
+# read-write (apply) SA used by CI/CD workflows
+# to impersonate netsec automation SA
 
-module "branch-network-sa-cicd" {
+module "branch-netsec-sa-cicd" {
   source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v33.0.0"
   for_each = (
-    try(local.cicd_repositories.networking.name, null) != null
-    ? { 0 = local.cicd_repositories.networking }
+    try(local.cicd_repositories.netsec.name, null) != null
+    ? { 0 = local.cicd_repositories.netsec }
     : {}
   )
   project_id   = var.automation.project_id
-  name         = "prod-resman-net-1"
-  display_name = "Terraform CI/CD stage 2 networking service account."
+  name         = "prod-resman-netsec-1"
+  display_name = "Terraform CI/CD stage 2 network security service account."
   prefix       = var.prefix
   iam = {
     "roles/iam.workloadIdentityUser" = [
@@ -53,18 +54,18 @@ module "branch-network-sa-cicd" {
   }
 }
 
-# read-only (plan) SA used by CI/CD workflows to impersonate automation SA
+# read-only (plan) SA used by CI/CD workflows to impersonate netsec automation SA
 
-module "branch-network-r-sa-cicd" {
+module "branch-netsec-r-sa-cicd" {
   source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v33.0.0"
   for_each = (
-    try(local.cicd_repositories.networking.name, null) != null
-    ? { 0 = local.cicd_repositories.networking }
+    try(local.cicd_repositories.netsec.name, null) != null
+    ? { 0 = local.cicd_repositories.netsec }
     : {}
   )
   project_id   = var.automation.project_id
-  name         = "prod-resman-net-1r"
-  display_name = "Terraform CI/CD stage 2 networking service account (read-only)."
+  name         = "prod-resman-netsec-1r"
+  display_name = "Terraform CI/CD stage 2 network security service account (read-only)."
   prefix       = var.prefix
   iam = {
     "roles/iam.workloadIdentityUser" = [

@@ -19,7 +19,7 @@
 # read-write (apply) SAs used by CI/CD workflows to impersonate automation SAs
 
 module "branch-pf-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v32.0.1"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v33.0.0"
   for_each = (
     try(local.cicd_repositories.project_factory.name, null) != null
     ? { 0 = local.cicd_repositories.project_factory }
@@ -54,7 +54,7 @@ module "branch-pf-sa-cicd" {
 }
 
 module "branch-pf-dev-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v32.0.1"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v33.0.0"
   for_each = (
     try(local.cicd_repositories.project_factory_dev.name, null) != null
     ? { 0 = local.cicd_repositories.project_factory_dev }
@@ -89,7 +89,7 @@ module "branch-pf-dev-sa-cicd" {
 }
 
 module "branch-pf-prod-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v32.0.1"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v33.0.0"
   for_each = (
     try(local.cicd_repositories.project_factory_prod.name, null) != null
     ? { 0 = local.cicd_repositories.project_factory_prod }
@@ -126,7 +126,7 @@ module "branch-pf-prod-sa-cicd" {
 # read-only (plan) SAs used by CI/CD workflows to impersonate automation SAs
 
 module "branch-pf-r-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v32.0.1"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v33.0.0"
   for_each = (
     try(local.cicd_repositories.project_factory.name, null) != null
     ? { 0 = local.cicd_repositories.project_factory }
@@ -154,7 +154,7 @@ module "branch-pf-r-sa-cicd" {
 }
 
 module "branch-pf-dev-r-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v32.0.1"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v33.0.0"
   for_each = (
     try(local.cicd_repositories.project_factory_dev.name, null) != null
     ? { 0 = local.cicd_repositories.project_factory_dev }
@@ -182,7 +182,7 @@ module "branch-pf-dev-r-sa-cicd" {
 }
 
 module "branch-pf-prod-r-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v32.0.1"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v33.0.0"
   for_each = (
     try(local.cicd_repositories.project_factory_prod.name, null) != null
     ? { 0 = local.cicd_repositories.project_factory_prod }
