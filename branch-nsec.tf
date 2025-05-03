@@ -16,18 +16,36 @@
 
 # tfdoc:file:description Network security stage resources.
 
+# TODO: remove in v35.0.0
+
+moved {
+  from = module.branch-nsec-sa
+  to   = module.branch-nsec-sa[0]
+}
+
+moved {
+  from = module.branch-nsec-r-sa
+  to   = module.branch-nsec-r-sa[0]
+}
+
+moved {
+  from = module.branch-nsec-gcs
+  to   = module.branch-nsec-gcs[0]
+}
+
 # automation service account
 
-module "branch-netsec-sa" {
-  source                 = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v33.0.0"
+module "branch-nsec-sa" {
+  source                 = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v34.1.0"
+  count                  = var.fast_features.nsec ? 1 : 0
   project_id             = var.automation.project_id
-  name                   = "prod-resman-netsec-0"
+  name                   = "prod-resman-nsec-0"
   display_name           = "Terraform resman network security service account."
   prefix                 = var.prefix
   service_account_create = var.root_node == null
   iam = {
     "roles/iam.serviceAccountTokenCreator" = compact([
-      try(module.branch-netsec-sa-cicd[0].iam_email, null)
+      try(module.branch-nsec-sa-cicd[0].iam_email, null)
     ])
   }
   iam_project_roles = {
@@ -40,15 +58,16 @@ module "branch-netsec-sa" {
 
 # automation read-only service account
 
-module "branch-netsec-r-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v33.0.0"
+module "branch-nsec-r-sa" {
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v34.1.0"
+  count        = var.fast_features.nsec ? 1 : 0
   project_id   = var.automation.project_id
-  name         = "prod-resman-netsec-0r"
+  name         = "prod-resman-nsec-0r"
   display_name = "Terraform resman network security service account (read-only)."
   prefix       = var.prefix
   iam = {
     "roles/iam.serviceAccountTokenCreator" = compact([
-      try(module.branch-netsec-r-sa-cicd[0].iam_email, null)
+      try(module.branch-nsec-r-sa-cicd[0].iam_email, null)
     ])
   }
   iam_project_roles = {
@@ -61,16 +80,16 @@ module "branch-netsec-r-sa" {
 
 # automation bucket
 
-module "branch-netsec-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v33.0.0"
-  project_id    = var.automation.project_id
-  name          = "prod-resman-netsec-0"
-  prefix        = var.prefix
-  location      = var.locations.gcs
-  storage_class = local.gcs_storage_class
-  versioning    = true
+module "branch-nsec-gcs" {
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v34.1.0"
+  count      = var.fast_features.nsec ? 1 : 0
+  project_id = var.automation.project_id
+  name       = "prod-resman-nsec-0"
+  prefix     = var.prefix
+  location   = var.locations.gcs
+  versioning = true
   iam = {
-    "roles/storage.objectAdmin"  = [module.branch-netsec-sa.iam_email]
-    "roles/storage.objectViewer" = [module.branch-netsec-r-sa.iam_email]
+    "roles/storage.objectAdmin"  = [module.branch-nsec-sa[0].iam_email]
+    "roles/storage.objectViewer" = [module.branch-nsec-r-sa[0].iam_email]
   }
 }

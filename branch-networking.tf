@@ -18,20 +18,34 @@
 
 locals {
   # FAST-specific IAM
-  _network_folder_fast_iam = {
-    # read-write (apply) automation service account
-    "roles/logging.admin"                  = [module.branch-network-sa.iam_email]
-    "roles/owner"                          = [module.branch-network-sa.iam_email]
-    "roles/resourcemanager.folderAdmin"    = [module.branch-network-sa.iam_email]
-    "roles/resourcemanager.projectCreator" = [module.branch-network-sa.iam_email]
-    "roles/compute.xpnAdmin"               = [module.branch-network-sa.iam_email]
-    # read-only (plan) automation service account
-    "roles/viewer"                       = [module.branch-network-r-sa.iam_email]
-    "roles/resourcemanager.folderViewer" = [module.branch-network-r-sa.iam_email]
-    # netsec service account
-    "roles/serviceusage.serviceUsageAdmin"                = [module.branch-netsec-sa.iam_email]
-    (var.custom_roles["network_firewall_policies_admin"]) = [module.branch-netsec-sa.iam_email]
-  }
+  _network_folder_fast_iam = merge(
+    {
+      # read-write (apply) automation service account
+      "roles/logging.admin"                  = [module.branch-network-sa.iam_email]
+      "roles/owner"                          = [module.branch-network-sa.iam_email]
+      "roles/resourcemanager.folderAdmin"    = [module.branch-network-sa.iam_email]
+      "roles/resourcemanager.projectCreator" = [module.branch-network-sa.iam_email]
+      "roles/compute.xpnAdmin"               = [module.branch-network-sa.iam_email]
+      # read-only (plan) automation service account
+      "roles/viewer"                       = [module.branch-network-r-sa.iam_email]
+      "roles/resourcemanager.folderViewer" = [module.branch-network-r-sa.iam_email]
+    },
+    var.fast_features.nsec != true ? {} : {
+      # nsec service accounts
+      "roles/serviceusage.serviceUsageAdmin" = [
+        try(module.branch-nsec-sa[0].iam_email, null)
+      ]
+      "roles/serviceusage.serviceUsageConsumer" = [
+        try(module.branch-nsec-r-sa[0].iam_email, null)
+      ]
+      (var.custom_roles["network_firewall_policies_admin"]) = [
+        try(module.branch-nsec-sa[0].iam_email, null)
+      ]
+      "roles/compute.orgFirewallPolicyUser" = [
+        try(module.branch-nsec-r-sa[0].iam_email, null)
+      ]
+    }
+  )
   # deep-merge FAST-specific IAM with user-provided bindings in var.folder_iam
   _network_folder_iam = merge(
     var.folder_iam.network,
@@ -43,7 +57,7 @@ locals {
 }
 
 module "branch-network-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v33.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v34.1.0"
   parent = local.root_node
   name   = "Networking"
   iam_by_principals = {
@@ -62,27 +76,29 @@ module "branch-network-folder" {
 }
 
 module "branch-network-prod-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v33.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v34.1.0"
   parent = module.branch-network-folder.id
   name   = "Production"
   iam = {
     # read-write (apply) automation service accounts
-    (local.custom_roles.service_project_network_admin) = concat(
-      local.branch_optional_sa_lists.dp-prod,
-      local.branch_optional_sa_lists.gke-prod,
-      local.branch_optional_sa_lists.gcve-prod,
-      local.branch_optional_sa_lists.pf,
-      local.branch_optional_sa_lists.pf-prod,
-    )
+    (local.custom_roles.service_project_network_admin) = compact([
+      try(module.branch-dp-prod-sa[0].iam_email, null),
+      try(module.branch-gcve-prod-sa[0].iam_email, null),
+      try(module.branch-gke-prod-sa[0].iam_email, null),
+      try(module.branch-pf-sa.iam_email, null),
+      try(module.branch-pf-prod-sa.iam_email, null)
+    ])
     # read-only (plan) automation service accounts
-    "roles/compute.networkViewer" = concat(
-      local.branch_optional_r_sa_lists.dp-prod,
-      local.branch_optional_r_sa_lists.gke-prod,
-      local.branch_optional_r_sa_lists.gcve-prod,
-      local.branch_optional_r_sa_lists.pf,
-      local.branch_optional_r_sa_lists.pf-prod,
-    )
-    (local.custom_roles.gcve_network_admin) = local.branch_optional_sa_lists.gcve-prod
+    "roles/compute.networkViewer" = compact([
+      try(module.branch-dp-prod-r-sa[0].iam_email, null),
+      try(module.branch-gcve-prod-r-sa[0].iam_email, null),
+      try(module.branch-gke-prod-r-sa[0].iam_email, null),
+      try(module.branch-pf-r-sa.iam_email, null),
+      try(module.branch-pf-prod-r-sa.iam_email, null)
+    ])
+    (local.custom_roles.gcve_network_admin) = compact([
+      try(module.branch-gcve-prod-sa[0].iam_email, null)
+    ])
   }
   tag_bindings = {
     environment = try(
@@ -93,27 +109,29 @@ module "branch-network-prod-folder" {
 }
 
 module "branch-network-dev-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v33.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v34.1.0"
   parent = module.branch-network-folder.id
   name   = "Development"
   iam = {
     # read-write (apply) automation service accounts
-    (local.custom_roles.service_project_network_admin) = concat(
-      local.branch_optional_sa_lists.dp-dev,
-      local.branch_optional_sa_lists.gke-dev,
-      local.branch_optional_sa_lists.gcve-dev,
-      local.branch_optional_sa_lists.pf,
-      local.branch_optional_sa_lists.pf-dev,
-    )
+    (local.custom_roles.service_project_network_admin) = compact([
+      try(module.branch-dp-dev-sa[0].iam_email, null),
+      try(module.branch-gcve-dev-sa[0].iam_email, null),
+      try(module.branch-gke-dev-sa[0].iam_email, null),
+      try(module.branch-pf-sa.iam_email, null),
+      try(module.branch-pf-dev-sa.iam_email, null)
+    ])
     # read-only (plan) automation service accounts
-    "roles/compute.networkViewer" = concat(
-      local.branch_optional_r_sa_lists.dp-dev,
-      local.branch_optional_r_sa_lists.gke-dev,
-      local.branch_optional_r_sa_lists.gcve-dev,
-      local.branch_optional_r_sa_lists.pf,
-      local.branch_optional_r_sa_lists.pf-dev,
-    )
-    (local.custom_roles.gcve_network_admin) = local.branch_optional_sa_lists.gcve-dev
+    "roles/compute.networkViewer" = compact([
+      try(module.branch-dp-dev-r-sa[0].iam_email, null),
+      try(module.branch-gcve-dev-r-sa[0].iam_email, null),
+      try(module.branch-gke-dev-r-sa[0].iam_email, null),
+      try(module.branch-pf-r-sa.iam_email, null),
+      try(module.branch-pf-dev-r-sa.iam_email, null)
+    ])
+    (local.custom_roles.gcve_network_admin) = compact([
+      try(module.branch-gcve-dev-sa[0].iam_email, null)
+    ])
   }
   tag_bindings = {
     environment = try(
@@ -126,7 +144,7 @@ module "branch-network-dev-folder" {
 # automation service account
 
 module "branch-network-sa" {
-  source                 = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v33.0.0"
+  source                 = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v34.1.0"
   project_id             = var.automation.project_id
   name                   = "prod-resman-net-0"
   display_name           = "Terraform resman networking service account."
@@ -148,7 +166,7 @@ module "branch-network-sa" {
 # automation read-only service account
 
 module "branch-network-r-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v33.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v34.1.0"
   project_id   = var.automation.project_id
   name         = "prod-resman-net-0r"
   display_name = "Terraform resman networking service account (read-only)."
@@ -169,13 +187,12 @@ module "branch-network-r-sa" {
 # automation bucket
 
 module "branch-network-gcs" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v33.0.0"
-  project_id    = var.automation.project_id
-  name          = "prod-resman-net-0"
-  prefix        = var.prefix
-  location      = var.locations.gcs
-  storage_class = local.gcs_storage_class
-  versioning    = true
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v34.1.0"
+  project_id = var.automation.project_id
+  name       = "prod-resman-net-0"
+  prefix     = var.prefix
+  location   = var.locations.gcs
+  versioning = true
   iam = {
     "roles/storage.objectAdmin"  = [module.branch-network-sa.iam_email]
     "roles/storage.objectViewer" = [module.branch-network-r-sa.iam_email]

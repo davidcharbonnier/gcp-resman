@@ -19,7 +19,7 @@
 # read-write (apply) SAs used by CI/CD workflows to impersonate automation SAs
 
 module "branch-dp-dev-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v33.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v34.1.0"
   for_each = (
     try(local.cicd_repositories.data_platform_dev.name, null) != null
     ? { 0 = local.cicd_repositories.data_platform_dev }
@@ -54,7 +54,7 @@ module "branch-dp-dev-sa-cicd" {
 }
 
 module "branch-dp-prod-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v33.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v34.1.0"
   for_each = (
     try(local.cicd_repositories.data_platform_prod.name, null) != null
     ? { 0 = local.cicd_repositories.data_platform_prod }
@@ -91,7 +91,7 @@ module "branch-dp-prod-sa-cicd" {
 # read-only (plan) SAs used by CI/CD workflows to impersonate automation SAs
 
 module "branch-dp-dev-r-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v33.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v34.1.0"
   for_each = (
     try(local.cicd_repositories.data_platform_dev.name, null) != null
     ? { 0 = local.cicd_repositories.data_platform_dev }
@@ -119,7 +119,7 @@ module "branch-dp-dev-r-sa-cicd" {
 }
 
 module "branch-dp-prod-r-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v33.0.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v34.1.0"
   for_each = (
     try(local.cicd_repositories.data_platform_prod.name, null) != null
     ? { 0 = local.cicd_repositories.data_platform_prod }

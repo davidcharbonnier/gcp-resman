@@ -37,7 +37,7 @@ locals {
 }
 
 module "organization" {
-  source          = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/organization?ref=v33.0.0"
+  source          = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/organization?ref=v34.1.0"
   count           = var.root_node == null ? 1 : 0
   organization_id = "organizations/${var.organization.id}"
   # additive bindings via delegated IAM grant set in stage 0
@@ -84,11 +84,23 @@ module "organization" {
       iam         = try(local.tags.environment.iam, {})
       values = {
         development = {
-          iam         = try(local.tags.environment.values.development.iam, {})
+          iam = try(local.tags.environment.values.development.iam, {})
+          iam_bindings = {
+            pf = {
+              members = [module.branch-pf-sa.iam_email]
+              role    = "roles/resourcemanager.tagUser"
+            }
+          }
           description = try(local.tags.environment.values.development.description, null)
         }
         production = {
-          iam         = try(local.tags.environment.values.production.iam, {})
+          iam = try(local.tags.environment.values.production.iam, {})
+          iam_bindings = {
+            pf = {
+              members = [module.branch-pf-sa.iam_email]
+              role    = "roles/resourcemanager.tagUser"
+            }
+          }
           description = try(local.tags.environment.values.production.description, null)
         }
       }

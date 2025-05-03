@@ -56,29 +56,56 @@ locals {
     },
     var.top_level_folders
   )
+  top_level_sa = {
+    for k, v in local.branch_service_accounts :
+    k => "serviceAccount:${v}" if v != null
+  }
+  top_level_tags = {
+    for k, v in try(local.tag_values, {}) : k => v.id
+  }
 }
 
 module "top-level-folder" {
-  source                = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v33.0.0"
-  for_each              = local.top_level_folders
-  parent                = "organizations/${var.organization.id}"
-  name                  = each.value.name
-  contacts              = each.value.contacts
-  firewall_policy       = each.value.firewall_policy
-  logging_data_access   = each.value.logging_data_access
-  logging_exclusions    = each.value.logging_exclusions
-  logging_settings      = each.value.logging_settings
-  logging_sinks         = each.value.logging_sinks
-  iam                   = each.value.iam
-  iam_bindings          = each.value.iam_bindings
-  iam_bindings_additive = each.value.iam_bindings_additive
-  iam_by_principals     = each.value.iam_by_principals
-  org_policies          = each.value.org_policies
-  tag_bindings          = each.value.tag_bindings
+  source              = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v34.1.0"
+  for_each            = local.top_level_folders
+  parent              = "organizations/${var.organization.id}"
+  name                = each.value.name
+  contacts            = each.value.contacts
+  firewall_policy     = each.value.firewall_policy
+  logging_data_access = each.value.logging_data_access
+  logging_exclusions  = each.value.logging_exclusions
+  logging_settings    = each.value.logging_settings
+  logging_sinks       = each.value.logging_sinks
+  iam = {
+    for role, members in each.value.iam :
+    lookup(var.custom_roles, role, role) => [
+      for member in members : lookup(local.top_level_sa, member, member)
+    ]
+  }
+  iam_bindings = {
+    for k, v in each.value.iam_bindings : k => merge(v, {
+      member = lookup(local.top_level_sa, v.member, v.member)
+      role   = lookup(var.custom_roles, v.role, v.role)
+    })
+  }
+  iam_bindings_additive = {
+    for k, v in each.value.iam_bindings_additive : k => merge(v, {
+      member = lookup(local.top_level_sa, v.member, v.member)
+      role   = lookup(var.custom_roles, v.role, v.role)
+    })
+  }
+  # we don't replace here to avoid dynamic values in keys
+  iam_by_principals = each.value.iam_by_principals
+  org_policies      = each.value.org_policies
+  tag_bindings = {
+    for k, v in each.value.tag_bindings : k => lookup(
+      local.top_level_tags, v, v
+    )
+  }
 }
 
 module "top-level-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v33.0.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v34.1.0"
   for_each     = local.top_level_automation
   project_id   = var.automation.project_id
   name         = "prod-resman-${each.key}-0"
@@ -96,14 +123,13 @@ module "top-level-sa" {
 }
 
 module "top-level-bucket" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v33.0.0"
-  for_each      = local.top_level_automation
-  project_id    = var.automation.project_id
-  name          = "prod-resman-${each.key}-0"
-  prefix        = var.prefix
-  location      = var.locations.gcs
-  storage_class = local.gcs_storage_class
-  versioning    = true
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v34.1.0"
+  for_each   = local.top_level_automation
+  project_id = var.automation.project_id
+  name       = "prod-resman-${each.key}-0"
+  prefix     = var.prefix
+  location   = var.locations.gcs
+  versioning = true
   iam = {
     "roles/storage.objectAdmin"  = [module.top-level-sa[each.key].iam_email]
     "roles/storage.objectViewer" = [module.top-level-sa[each.key].iam_email]

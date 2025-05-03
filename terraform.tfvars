@@ -5,18 +5,24 @@ cicd_repositories = {
     name              = "davidcharbonnier/gcp-networking"
     type              = "github"
   }
-  project_factory_dev = {
+  project_factory = {
     branch            = null
     identity_provider = "github"
     name              = "davidcharbonnier/gcp-project-factory"
     type              = "github"
   }
-  project_factory_prod = {
-    branch            = null
-    identity_provider = "github"
-    name              = "davidcharbonnier/gcp-project-factory"
-    type              = "github"
-  }
+  #project_factory_dev = {
+  #  branch            = null
+  #  identity_provider = "github"
+  #  name              = "davidcharbonnier/gcp-project-factory"
+  #  type              = "github"
+  #}
+  #project_factory_prod = {
+  #  branch            = null
+  #  identity_provider = "github"
+  #  name              = "davidcharbonnier/gcp-project-factory"
+  #  type              = "github"
+  #}
   security = {
     branch            = null
     identity_provider = "github"
@@ -24,24 +30,6 @@ cicd_repositories = {
     type              = "github"
   }
 }
-
-#team_folders = {
-#  infra = {
-#    descriptive_name         = "Infra"
-#    iam_by_principals        = {}
-#    impersonation_principals = []
-#    cicd = {
-#      branch            = null
-#      identity_provider = "github"
-#      name              = "davidcharbonnier/gcp-team-infra"
-#      type              = "github"
-#    }
-#  }
-#}
-
-#factories_config = {
-#  top_level_folders = "data/top-level-folders"
-#}
 
 fast_features = {
   project_factory = true
