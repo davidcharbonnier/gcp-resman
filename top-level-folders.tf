@@ -66,9 +66,9 @@ locals {
 }
 
 module "top-level-folder" {
-  source              = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v34.1.0"
+  source              = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v35.1.0"
   for_each            = local.top_level_folders
-  parent              = "organizations/${var.organization.id}"
+  parent              = local.root_node
   name                = each.value.name
   contacts            = each.value.contacts
   firewall_policy     = each.value.firewall_policy
@@ -105,7 +105,7 @@ module "top-level-folder" {
 }
 
 module "top-level-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v34.1.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v35.1.0"
   for_each     = local.top_level_automation
   project_id   = var.automation.project_id
   name         = "prod-resman-${each.key}-0"
@@ -123,7 +123,7 @@ module "top-level-sa" {
 }
 
 module "top-level-bucket" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v34.1.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v35.1.0"
   for_each   = local.top_level_automation
   project_id = var.automation.project_id
   name       = "prod-resman-${each.key}-0"

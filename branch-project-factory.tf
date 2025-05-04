@@ -19,7 +19,7 @@
 # automation service accounts
 
 module "branch-pf-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v34.1.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v35.1.0"
   project_id   = var.automation.project_id
   name         = "resman-pf-0"
   display_name = "Terraform project factory main service account."
@@ -38,7 +38,7 @@ module "branch-pf-sa" {
 }
 
 module "branch-pf-dev-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v34.1.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v35.1.0"
   project_id   = var.automation.project_id
   name         = "dev-resman-pf-0"
   display_name = "Terraform project factory development service account."
@@ -57,7 +57,7 @@ module "branch-pf-dev-sa" {
 }
 
 module "branch-pf-prod-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v34.1.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v35.1.0"
   project_id   = var.automation.project_id
   name         = "prod-resman-pf-0"
   display_name = "Terraform project factory production service account."
@@ -78,7 +78,7 @@ module "branch-pf-prod-sa" {
 # automation read-only service accounts
 
 module "branch-pf-r-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v34.1.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v35.1.0"
   project_id   = var.automation.project_id
   name         = "resman-pf-0r"
   display_name = "Terraform project factory main service account (read-only)."
@@ -97,7 +97,7 @@ module "branch-pf-r-sa" {
 }
 
 module "branch-pf-dev-r-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v34.1.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v35.1.0"
   project_id   = var.automation.project_id
   name         = "dev-resman-pf-0r"
   display_name = "Terraform project factory development service account (read-only)."
@@ -116,7 +116,7 @@ module "branch-pf-dev-r-sa" {
 }
 
 module "branch-pf-prod-r-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v34.1.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v35.1.0"
   project_id   = var.automation.project_id
   name         = "prod-resman-pf-0r"
   display_name = "Terraform project factory production service account (read-only)."
@@ -137,7 +137,7 @@ module "branch-pf-prod-r-sa" {
 # automation buckets
 
 module "branch-pf-gcs" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v34.1.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v35.1.0"
   project_id = var.automation.project_id
   name       = "resman-pf-0"
   prefix     = var.prefix
@@ -150,7 +150,7 @@ module "branch-pf-gcs" {
 }
 
 module "branch-pf-dev-gcs" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v34.1.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v35.1.0"
   project_id = var.automation.project_id
   name       = "dev-resman-pf-0"
   prefix     = var.prefix
@@ -163,7 +163,7 @@ module "branch-pf-dev-gcs" {
 }
 
 module "branch-pf-prod-gcs" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v34.1.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v35.1.0"
   project_id = var.automation.project_id
   name       = "prod-resman-pf-0"
   prefix     = var.prefix

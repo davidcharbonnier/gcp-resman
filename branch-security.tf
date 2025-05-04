@@ -39,7 +39,7 @@ locals {
 }
 
 module "branch-security-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v34.1.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v35.1.0"
   parent = local.root_node
   name   = "Security"
   iam_by_principals = {
@@ -78,7 +78,7 @@ module "branch-security-folder" {
 # automation service account
 
 module "branch-security-sa" {
-  source                 = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v34.1.0"
+  source                 = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v35.1.0"
   project_id             = var.automation.project_id
   name                   = "prod-resman-sec-0"
   display_name           = "Terraform resman security service account."
@@ -100,7 +100,7 @@ module "branch-security-sa" {
 # automation read-only service account
 
 module "branch-security-r-sa" {
-  source                 = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v34.1.0"
+  source                 = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v35.1.0"
   project_id             = var.automation.project_id
   name                   = "prod-resman-sec-0r"
   display_name           = "Terraform resman security service account (read-only)."
@@ -122,7 +122,7 @@ module "branch-security-r-sa" {
 # automation bucket
 
 module "branch-security-gcs" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v34.1.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v35.1.0"
   project_id = var.automation.project_id
   name       = "prod-resman-sec-0"
   prefix     = var.prefix

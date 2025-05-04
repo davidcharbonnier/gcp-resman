@@ -57,7 +57,7 @@ locals {
 }
 
 module "branch-network-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v34.1.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v35.1.0"
   parent = local.root_node
   name   = "Networking"
   iam_by_principals = {
@@ -76,7 +76,7 @@ module "branch-network-folder" {
 }
 
 module "branch-network-prod-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v34.1.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v35.1.0"
   parent = module.branch-network-folder.id
   name   = "Production"
   iam = {
@@ -109,7 +109,7 @@ module "branch-network-prod-folder" {
 }
 
 module "branch-network-dev-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v34.1.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v35.1.0"
   parent = module.branch-network-folder.id
   name   = "Development"
   iam = {
@@ -144,7 +144,7 @@ module "branch-network-dev-folder" {
 # automation service account
 
 module "branch-network-sa" {
-  source                 = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v34.1.0"
+  source                 = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v35.1.0"
   project_id             = var.automation.project_id
   name                   = "prod-resman-net-0"
   display_name           = "Terraform resman networking service account."
@@ -166,7 +166,7 @@ module "branch-network-sa" {
 # automation read-only service account
 
 module "branch-network-r-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v34.1.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v35.1.0"
   project_id   = var.automation.project_id
   name         = "prod-resman-net-0r"
   display_name = "Terraform resman networking service account (read-only)."
@@ -187,7 +187,7 @@ module "branch-network-r-sa" {
 # automation bucket
 
 module "branch-network-gcs" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v34.1.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v35.1.0"
   project_id = var.automation.project_id
   name       = "prod-resman-net-0"
   prefix     = var.prefix

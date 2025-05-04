@@ -72,7 +72,7 @@ check "checklist" {
 }
 
 module "checklist-folder-1" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v34.1.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v35.1.0"
   for_each = {
     for k, v in local.checklist.hierarchy : k => v if v.level == 1
   }
@@ -85,7 +85,7 @@ module "checklist-folder-1" {
 }
 
 module "checklist-folder-2" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v34.1.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v35.1.0"
   for_each = {
     for k, v in local.checklist.hierarchy : k => v if v.level == 2
   }
@@ -98,7 +98,7 @@ module "checklist-folder-2" {
 }
 
 module "checklist-folder-3" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v34.1.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v35.1.0"
   for_each = {
     for k, v in local.checklist.hierarchy : k => v if v.level == 3
   }

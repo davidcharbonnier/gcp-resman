@@ -35,7 +35,7 @@ locals {
 }
 
 module "branch-sandbox-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v34.1.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v35.1.0"
   count  = var.fast_features.sandbox ? 1 : 0
   parent = local.root_node
   name   = "Sandbox"
@@ -55,7 +55,7 @@ module "branch-sandbox-folder" {
 }
 
 module "branch-sandbox-gcs" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v34.1.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v35.1.0"
   count      = var.fast_features.sandbox ? 1 : 0
   project_id = var.automation.project_id
   name       = "dev-resman-sbox-0"
@@ -68,7 +68,7 @@ module "branch-sandbox-gcs" {
 }
 
 module "branch-sandbox-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v34.1.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v35.1.0"
   count        = var.fast_features.sandbox ? 1 : 0
   project_id   = var.automation.project_id
   name         = "dev-resman-sbox-0"

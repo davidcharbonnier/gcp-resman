@@ -20,7 +20,7 @@
 # to impersonate nsec automation SA
 
 module "branch-nsec-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v34.1.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v35.1.0"
   for_each = (
     try(local.cicd_repositories.nsec.name, null) != null
     ? { 0 = local.cicd_repositories.nsec }
@@ -37,6 +37,12 @@ module "branch-nsec-sa-cicd" {
         local.identity_providers[each.value.identity_provider].principal_repo,
         var.automation.federated_identity_pool,
         each.value.name
+      )
+      : length(regexall("%s", local.identity_providers[each.value.identity_provider].principal_branch)) == 2
+      ? format(
+        local.identity_providers[each.value.identity_provider].principal_branch,
+        var.automation.federated_identity_pool,
+        each.value.branch
       )
       : format(
         local.identity_providers[each.value.identity_provider].principal_branch,
@@ -57,7 +63,7 @@ module "branch-nsec-sa-cicd" {
 # read-only (plan) SA used by CI/CD workflows to impersonate nsec automation SA
 
 module "branch-nsec-r-sa-cicd" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v34.1.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v35.1.0"
   for_each = (
     try(local.cicd_repositories.nsec.name, null) != null
     ? { 0 = local.cicd_repositories.nsec }
