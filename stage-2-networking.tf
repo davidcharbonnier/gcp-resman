@@ -15,7 +15,7 @@
  */
 
 locals {
-  # normalize IAM bindings for stage 3 service accounts
+  # filter and normalize stage 3 roles applied to this stage's top-level folder
   net_s3_iam = !var.fast_stage_2.networking.enabled ? {} : {
     for v in local.stage3_iam_in_stage2 : "${v.role}:${v.env}" => (
       v.sa == "rw"
@@ -33,7 +33,7 @@ locals {
 # top-level folder
 
 module "net-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v36.2.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v37.4.0"
   count  = var.fast_stage_2.networking.enabled ? 1 : 0
   parent = (
     var.fast_stage_2.networking.folder_config.parent_id == null
@@ -56,21 +56,6 @@ module "net-folder" {
       "roles/viewer"                         = [module.net-sa-ro[0].iam_email]
       "roles/resourcemanager.folderViewer"   = [module.net-sa-ro[0].iam_email]
       "roles/resourcemanager.tagViewer"      = [module.net-sa-ro[0].iam_email]
-    },
-    # network security stage 2 service accounts
-    var.fast_stage_2.network_security.enabled != true ? {} : {
-      "roles/serviceusage.serviceUsageAdmin" = [
-        module.nsec-sa-rw[0].iam_email
-      ]
-      (var.custom_roles["network_firewall_policies_admin"]) = [
-        module.nsec-sa-rw[0].iam_email
-      ]
-      "roles/compute.orgFirewallPolicyUser" = [
-        module.nsec-sa-ro[0].iam_email
-      ]
-      "roles/serviceusage.serviceUsageConsumer" = [
-        module.nsec-sa-ro[0].iam_email
-      ]
     },
     # security stage 2 service accounts
     var.fast_stage_2.security.enabled != true ? {} : {
@@ -143,27 +128,14 @@ module "net-folder" {
 
 # optional per-environment folders
 
-module "net-folder-prod" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v36.2.0"
-  count  = local.net_use_env_folders ? 1 : 0
-  parent = module.net-folder[0].id
-  name   = var.environments["prod"].name
+module "net-folder-envs" {
+  source   = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v37.4.0"
+  for_each = local.net_use_env_folders ? var.environments : {}
+  parent   = module.net-folder[0].id
+  name     = each.value.name
   tag_bindings = {
     environment = try(
-      local.tag_values["${var.tag_names.environment}/${var.environments["prod"].tag_name}"].id,
-      null
-    )
-  }
-}
-
-module "net-folder-dev" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v36.2.0"
-  count  = local.net_use_env_folders ? 1 : 0
-  parent = module.net-folder[0].id
-  name   = var.environments["dev"].name
-  tag_bindings = {
-    environment = try(
-      local.tag_values["${var.tag_names.environment}/${var.environments["dev"].tag_name}"].id,
+      local.tag_values["${var.tag_names.environment}/${each.value.tag_name}"].id,
       null
     )
   }
@@ -172,7 +144,7 @@ module "net-folder-dev" {
 # automation service accounts
 
 module "net-sa-rw" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v36.2.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v37.4.0"
   count      = var.fast_stage_2.networking.enabled ? 1 : 0
   project_id = var.automation.project_id
   name = templatestring(var.resource_names["sa-net_rw"], {
@@ -182,9 +154,10 @@ module "net-sa-rw" {
   prefix                 = var.prefix
   service_account_create = var.root_node == null
   iam = {
-    "roles/iam.serviceAccountTokenCreator" = compact([
-      try(module.cicd-sa-rw["networking"].iam_email, null)
-    ])
+    "roles/iam.serviceAccountTokenCreator" = [
+      for k, v in local.cicd_repositories :
+      module.cicd-sa-rw[k].iam_email if v.stage == "networking"
+    ]
   }
   iam_project_roles = {
     (var.automation.project_id) = ["roles/serviceusage.serviceUsageConsumer"]
@@ -195,7 +168,7 @@ module "net-sa-rw" {
 }
 
 module "net-sa-ro" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v36.2.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v37.4.0"
   count      = var.fast_stage_2.networking.enabled ? 1 : 0
   project_id = var.automation.project_id
   name = templatestring(var.resource_names["sa-net_ro"], {
@@ -204,9 +177,10 @@ module "net-sa-ro" {
   display_name = "Terraform resman networking service account (read-only)."
   prefix       = var.prefix
   iam = {
-    "roles/iam.serviceAccountTokenCreator" = compact([
-      try(module.cicd-sa-ro["networking"].iam_email, null)
-    ])
+    "roles/iam.serviceAccountTokenCreator" = [
+      for k, v in local.cicd_repositories :
+      module.cicd-sa-ro[k].iam_email if v.stage == "networking"
+    ]
   }
   iam_project_roles = {
     (var.automation.project_id) = ["roles/serviceusage.serviceUsageConsumer"]
@@ -219,7 +193,7 @@ module "net-sa-ro" {
 # automation bucket
 
 module "net-bucket" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v36.2.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v37.4.0"
   count      = var.fast_stage_2.networking.enabled ? 1 : 0
   project_id = var.automation.project_id
   name = templatestring(var.resource_names["gcs-net"], {

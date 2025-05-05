@@ -113,7 +113,7 @@ locals {
 # top-level folder
 
 module "stage3-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v36.2.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v37.4.0"
   for_each = {
     for k, v in local.stage3 : k => v if v.folder_config != null
   }
@@ -153,7 +153,7 @@ module "stage3-folder" {
 # automation service accounts
 
 module "stage3-sa-rw" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v36.2.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v37.4.0"
   for_each   = local.stage3
   project_id = var.automation.project_id
   name = templatestring(var.resource_names["sa-stage3_rw"], {
@@ -177,7 +177,7 @@ module "stage3-sa-rw" {
 }
 
 module "stage3-sa-ro" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v36.2.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v37.4.0"
   for_each   = local.stage3
   project_id = var.automation.project_id
   name = templatestring(var.resource_names["sa-stage3_ro"], {
@@ -203,7 +203,7 @@ module "stage3-sa-ro" {
 # automation bucket
 
 module "stage3-bucket" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v36.2.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v37.4.0"
   for_each   = local.stage3
   project_id = var.automation.project_id
   name = templatestring(var.resource_names["gcs-stage3"], {

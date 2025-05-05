@@ -28,5 +28,8 @@ fast_stage_2 = {
         type   = "github"
       }
     }
+    folder_config = {
+      create_env_folders = true
+    }
   }
 }

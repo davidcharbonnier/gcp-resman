@@ -72,6 +72,15 @@ locals {
   # service account expansion for user-specified tag values
   tags = {
     for k, v in var.tags : k => merge(v, {
+      iam = {
+        for rk, rv in v.iam : rk => [
+          for rm in rv : (
+            contains(keys(local.service_accounts), rm)
+            ? "serviceAccount:${local.service_accounts[rm]}"
+            : rm
+          )
+        ]
+      }
       values = {
         for vk, vv in v.values : vk => merge(vv, {
           iam = {
@@ -90,7 +99,7 @@ locals {
 }
 
 module "organization" {
-  source          = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/organization?ref=v36.2.0"
+  source          = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/organization?ref=v37.4.0"
   count           = var.root_node == null ? 1 : 0
   organization_id = "organizations/${var.organization.id}"
   # additive bindings leveraging the delegated IAM grant set in stage 0

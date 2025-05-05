@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  */
 
 locals {
-  sec_use_env_folders = (
-    var.fast_stage_2.security.enabled &&
-    var.fast_stage_2.security.folder_config.create_env_folders
-  )
+  # filter and normalize stage 3 roles applied to this stage's top-level folder
   sec_s3_iam = !var.fast_stage_2.security.enabled ? {} : {
     for v in local.stage3_iam_in_stage2 : "${v.role}:${v.env}" => (
       v.sa == "rw"
@@ -27,12 +24,16 @@ locals {
     )...
     if v.s2 == "security"
   }
+  sec_use_env_folders = (
+    var.fast_stage_2.security.enabled &&
+    var.fast_stage_2.security.folder_config.create_env_folders
+  )
 }
 
 # top-level folder
 
 module "sec-folder" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v36.2.0"
+  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v37.4.0"
   count  = var.fast_stage_2.security.enabled ? 1 : 0
   parent = (
     var.fast_stage_2.security.folder_config.parent_id == null
@@ -50,10 +51,13 @@ module "sec-folder" {
       "roles/owner"                          = [module.sec-sa-rw[0].iam_email]
       "roles/resourcemanager.folderAdmin"    = [module.sec-sa-rw[0].iam_email]
       "roles/resourcemanager.projectCreator" = [module.sec-sa-rw[0].iam_email]
-      "roles/resourcemanager.tagUser"        = [module.net-sa-rw[0].iam_email]
       "roles/viewer"                         = [module.sec-sa-ro[0].iam_email]
       "roles/resourcemanager.folderViewer"   = [module.sec-sa-ro[0].iam_email]
-      "roles/resourcemanager.tagViewer"      = [module.net-sa-ro[0].iam_email]
+    },
+    # networking service accounts
+    (var.fast_stage_2.networking.enabled) != true ? {} : {
+      "roles/resourcemanager.tagUser"   = [module.net-sa-rw[0].iam_email]
+      "roles/resourcemanager.tagViewer" = [module.net-sa-ro[0].iam_email]
     },
     # project factory service accounts
     (var.fast_stage_2.project_factory.enabled) != true ? {} : {
@@ -116,47 +120,14 @@ module "sec-folder" {
 
 # optional per-environment folders
 
-module "sec-folder-prod" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v36.2.0"
-  count  = local.sec_use_env_folders ? 1 : 0
-  parent = module.sec-folder[0].id
-  name   = var.environments["prod"].name
-  iam = {
-    # stage 3s service accounts
-    for role, attrs in local.sec_s3_iam.prod : role => [
-      for v in attrs : (
-        v.sa == "ro"
-        ? module.stage3-sa-ro[v.s3].iam_email
-        : module.stage3-sa-rw[v.s3].iam_email
-      )
-    ]
-  }
+module "sec-folder-envs" {
+  source   = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v37.4.0"
+  for_each = local.sec_use_env_folders ? var.environments : {}
+  parent   = module.sec-folder[0].id
+  name     = each.value.name
   tag_bindings = {
     environment = try(
-      local.tag_values["${var.tag_names.environment}/${var.environments["prod"].tag_name}"].id,
-      null
-    )
-  }
-}
-
-module "sec-folder-dev" {
-  source = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v36.2.0"
-  count  = local.sec_use_env_folders ? 1 : 0
-  parent = module.sec-folder[0].id
-  name   = var.environments["dev"].name
-  iam = {
-    # stage 3s service accounts
-    for role, attrs in local.sec_s3_iam.dev : role => [
-      for v in attrs : (
-        v.sa == "ro"
-        ? module.stage3-sa-ro[v.s3].iam_email
-        : module.stage3-sa-rw[v.s3].iam_email
-      )
-    ]
-  }
-  tag_bindings = {
-    environment = try(
-      local.tag_values["${var.tag_names.environment}/${var.environments["dev"].tag_name}"].id,
+      local.tag_values["${var.tag_names.environment}/${each.value.tag_name}"].id,
       null
     )
   }
@@ -165,7 +136,7 @@ module "sec-folder-dev" {
 # automation service accounts
 
 module "sec-sa-rw" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v36.2.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v37.4.0"
   count      = var.fast_stage_2.security.enabled ? 1 : 0
   project_id = var.automation.project_id
   name = templatestring(var.resource_names["sa-sec_rw"], {
@@ -175,9 +146,10 @@ module "sec-sa-rw" {
   prefix                 = var.prefix
   service_account_create = var.root_node == null
   iam = {
-    "roles/iam.serviceAccountTokenCreator" = compact([
-      try(module.cicd-sa-rw["security"].iam_email, null)
-    ])
+    "roles/iam.serviceAccountTokenCreator" = [
+      for k, v in local.cicd_repositories :
+      module.cicd-sa-rw[k].iam_email if v.stage == "security"
+    ]
   }
   iam_project_roles = {
     (var.automation.project_id) = ["roles/serviceusage.serviceUsageConsumer"]
@@ -188,7 +160,7 @@ module "sec-sa-rw" {
 }
 
 module "sec-sa-ro" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v36.2.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v37.4.0"
   count      = var.fast_stage_2.security.enabled ? 1 : 0
   project_id = var.automation.project_id
   name = templatestring(var.resource_names["sa-sec_ro"], {
@@ -197,9 +169,10 @@ module "sec-sa-ro" {
   display_name = "Terraform resman security service account (read-only)."
   prefix       = var.prefix
   iam = {
-    "roles/iam.serviceAccountTokenCreator" = compact([
-      try(module.cicd-sa-ro["security"].iam_email, null)
-    ])
+    "roles/iam.serviceAccountTokenCreator" = [
+      for k, v in local.cicd_repositories :
+      module.cicd-sa-ro[k].iam_email if v.stage == "security"
+    ]
   }
   iam_project_roles = {
     (var.automation.project_id) = ["roles/serviceusage.serviceUsageConsumer"]
@@ -212,7 +185,7 @@ module "sec-sa-ro" {
 # automation bucket
 
 module "sec-bucket" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v36.2.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v37.4.0"
   count      = var.fast_stage_2.security.enabled ? 1 : 0
   project_id = var.automation.project_id
   name = templatestring(var.resource_names["gcs-sec"], {

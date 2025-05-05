@@ -17,7 +17,7 @@
 # automation service accounts
 
 module "pf-sa-rw" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v36.2.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v37.4.0"
   count      = var.fast_stage_2.project_factory.enabled ? 1 : 0
   project_id = var.automation.project_id
   name = templatestring(var.resource_names["sa-pf_rw"], {
@@ -26,9 +26,10 @@ module "pf-sa-rw" {
   display_name = "Terraform resman project factory main service account."
   prefix       = var.prefix
   iam = {
-    "roles/iam.serviceAccountTokenCreator" = compact([
-      try(module.cicd-sa-rw["project_factory"].iam_email, null)
-    ])
+    "roles/iam.serviceAccountTokenCreator" = [
+      for k, v in local.cicd_repositories :
+      module.cicd-sa-rw[k].iam_email if v.stage == "project-factory"
+    ]
   }
   iam_project_roles = {
     (var.automation.project_id) = ["roles/serviceusage.serviceUsageConsumer"]
@@ -39,7 +40,7 @@ module "pf-sa-rw" {
 }
 
 module "pf-sa-ro" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v36.2.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v37.4.0"
   count      = var.fast_stage_2.project_factory.enabled ? 1 : 0
   project_id = var.automation.project_id
   name = templatestring(var.resource_names["sa-pf_ro"], {
@@ -48,9 +49,10 @@ module "pf-sa-ro" {
   display_name = "Terraform resman project factory main service account (read-only)."
   prefix       = var.prefix
   iam = {
-    "roles/iam.serviceAccountTokenCreator" = compact([
-      try(module.cicd-sa-ro["project_factory"].iam_email, null)
-    ])
+    "roles/iam.serviceAccountTokenCreator" = [
+      for k, v in local.cicd_repositories :
+      module.cicd-sa-ro[k].iam_email if v.stage == "project-factory"
+    ]
   }
   iam_project_roles = {
     (var.automation.project_id) = ["roles/serviceusage.serviceUsageConsumer"]
@@ -63,7 +65,7 @@ module "pf-sa-ro" {
 # automation bucket
 
 module "pf-bucket" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v36.2.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v37.4.0"
   count      = var.fast_stage_2.project_factory.enabled ? 1 : 0
   project_id = var.automation.project_id
   name = templatestring(var.resource_names["gcs-pf"], {
