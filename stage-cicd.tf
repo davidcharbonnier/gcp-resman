@@ -20,7 +20,7 @@ locals {
   _cicd_configs = merge(
     # stage 2
     {
-      for k, v in var.fast_stage_2 : k => merge(v.cicd_config, {
+      for k, v in local.stage2 : k => merge(v.cicd_config, {
         env        = "prod"
         level      = 2
         stage      = replace(k, "_", "-")
@@ -66,7 +66,7 @@ locals {
 }
 
 module "cicd-sa-rw" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v37.4.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v38.2.0"
   for_each   = local.cicd_repositories
   project_id = var.automation.project_id
   name = templatestring(var.resource_names["sa-cicd_rw"], {
@@ -101,7 +101,7 @@ module "cicd-sa-rw" {
 }
 
 module "cicd-sa-ro" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v37.4.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v38.2.0"
   for_each   = local.cicd_repositories
   project_id = var.automation.project_id
   name = templatestring(var.resource_names["sa-cicd_ro"], {

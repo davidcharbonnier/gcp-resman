@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ locals {
 }
 
 module "top-level-folder" {
-  source              = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v37.4.0"
+  source              = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v38.2.0"
   for_each            = local.top_level_folders
   parent              = coalesce(each.value.parent_id, local.root_node)
   name                = each.value.name
@@ -86,15 +86,17 @@ module "top-level-folder" {
   iam = {
     for role, members in each.value.iam :
     lookup(var.custom_roles, role, role) => [
-      for member in members : (each.value.automation != null && member == "self")
+      for member in members :
+      (each.value.automation != null && member == "self")
       ? module.top-level-sa[each.key].iam_email
-      : lookup(local.top_level_sa, member, member)
+      : lookup(local.principals_iam, member, member)
     ]
   }
   iam_bindings = {
     for k, v in each.value.iam_bindings : k => {
       members = [
-        for member in v.members : (each.value.automation != null && member == "self")
+        for member in v.members :
+        (each.value.automation != null && member == "self")
         ? module.top-level-sa[each.key].iam_email
         : lookup(local.top_level_sa, member, member)
       ]
@@ -106,14 +108,20 @@ module "top-level-folder" {
       member = (
         each.value.automation != null && v.member == "self"
         ? module.top-level-sa[each.key].iam_email
-        : lookup(local.top_level_sa, v.member, v.member)
+        : lookup(local.principals_iam, v.member, v.member)
       )
       role = lookup(var.custom_roles, v.role, v.role)
     })
   }
-  # we don't replace here to avoid dynamic values in keys
-  iam_by_principals = each.value.iam_by_principals
-  org_policies      = each.value.org_policies
+  iam_by_principals = {
+    for k, v in each.value.iam_by_principals :
+    (
+      (each.value.automation != null && k == "self")
+      ? module.top-level-sa[each.key].iam_email
+      : lookup(local.principals_iam, k, k)
+    ) => [for r in v : lookup(var.custom_roles, r, r)]
+  }
+  org_policies = each.value.org_policies
   tag_bindings = merge(
     # explicit tag bindings
     {
@@ -127,7 +135,7 @@ module "top-level-folder" {
 }
 
 module "top-level-sa" {
-  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v37.4.0"
+  source       = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/iam-service-account?ref=v38.2.0"
   for_each     = local.top_level_automation
   project_id   = var.automation.project_id
   name         = "${each.value.environment_name}-resman-${coalesce(each.value.short_name, each.key)}-0"
@@ -145,7 +153,7 @@ module "top-level-sa" {
 }
 
 module "top-level-bucket" {
-  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v37.4.0"
+  source     = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/gcs?ref=v38.2.0"
   for_each   = local.top_level_automation
   project_id = var.automation.project_id
   name       = "${each.value.environment_name}-resman-${coalesce(each.value.short_name, each.key)}-0"

@@ -15,7 +15,7 @@
  */
 
 module "root-folder" {
-  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v37.4.0"
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/folder?ref=v38.2.0"
   count         = var.root_node != null ? 1 : 0
   id            = var.root_node
   folder_create = false
@@ -32,10 +32,10 @@ module "root-folder" {
 }
 
 module "automation-project" {
-  source         = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/project?ref=v37.4.0"
-  count          = var.root_node != null ? 1 : 0
-  name           = var.automation.project_id
-  project_create = false
+  source        = "git@github.com:GoogleCloudPlatform/cloud-foundation-fabric.git//modules/project?ref=v38.2.0"
+  count         = var.root_node != null ? 1 : 0
+  name          = var.automation.project_id
+  project_reuse = {}
   # do not assign tagViewer or tagUser roles here on tag keys and values as
   # they are managed authoritatively and will break multitenant stages
   tags = merge(local.tags, {
